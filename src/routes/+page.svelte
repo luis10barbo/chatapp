@@ -1,59 +1,62 @@
-<script>
-	import Counter from './Counter.svelte';
-	import welcome from '$lib/images/svelte-welcome.webp';
-	import welcome_fallback from '$lib/images/svelte-welcome.png';
+<script lang="ts">
+  import "./style.css";
 </script>
 
-<svelte:head>
-	<title>Home</title>
-	<meta name="description" content="Svelte demo app" />
-</svelte:head>
+<section id="chats">
+  <header id="chats-header" class="section-header">
+    <p>Conversas</p>
+  </header>
+  <section id="chats-holder">
+    <div id="chat-search-holder">
+      <input placeholder="Pesquisar uma conversa..." />
+      <button>Pesquisar</button>
+    </div>
 
-<section>
-	<h1>
-		<span class="welcome">
-			<picture>
-				<source srcset={welcome} type="image/webp" />
-				<img src={welcome_fallback} alt="Welcome" />
-			</picture>
-		</span>
-
-		to your new<br />SvelteKit app
-	</h1>
-
-	<h2>
-		try editing <strong>src/routes/+page.svelte</strong>
-	</h2>
-
-	<Counter />
+    <button class="chat-card">
+      <header class="chat-card-header">
+        <p class="chat-card-name">Titulo</p>
+      </header>
+      <footer class="chat-card-footer">
+        <p class="chat-card-time">10:45</p>
+        <p class="chat-card-status">
+          <span class="chat-card-status-name">Luis</span>
+          <span class="chat-card-status-msg">teste teste</span>
+        </p>
+      </footer>
+    </button>
+  </section>
+  <footer id="chats-footer" class="section-footer">
+    <button>Contatos</button>
+    <button>Perfil</button>
+    <button>Sair</button>
+  </footer>
 </section>
-
-<style>
-	section {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		flex: 0.6;
-	}
-
-	h1 {
-		width: 100%;
-	}
-
-	.welcome {
-		display: block;
-		position: relative;
-		width: 100%;
-		height: 0;
-		padding: 0 0 calc(100% * 495 / 2048) 0;
-	}
-
-	.welcome img {
-		position: absolute;
-		width: 100%;
-		height: 100%;
-		top: 0;
-		display: block;
-	}
-</style>
+<section id="curr-chat">
+  <header id="curr-chat-header" class="section-header">
+    <img id="img-curr-chat" />
+    <div id="curr-chat-info">
+      <p>Grupo Atual</p>
+      <p class="chat-status" />
+    </div>
+    <p id="curr-chat-online-holder">
+      <span id="curr-chat-online-count">0</span> Online
+    </p>
+  </header>
+  <div id="curr-chat-messages-holder">
+    <div class="msg-card">
+      <header class="msg-card-header">
+        <p class="msg-card-name">Luis</p>
+      </header>
+      <footer class="msg-card-footer">
+        <p class="msg-card-time">10:45</p>
+        <p class="msg-card-status">
+          <span class="msg-card-msg">Alguem aqui no chat</span>
+        </p>
+      </footer>
+    </div>
+  </div>
+  <footer id="curr-chat-footer" class="section-footer">
+    <input id="send-message" placeholder="Escreva uma mensagem..." />
+    <button id="send-message-button">Enviar</button>
+  </footer>
+</section>
