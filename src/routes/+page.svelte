@@ -1,5 +1,13 @@
 <script lang="ts">
+  import CardMensagem from "./CardMensagem.svelte";
+  import type { Mensagem } from "./CardMensagem.svelte";
   import "./style.css";
+  const meuId = 0;
+  const mensagens: Mensagem[] = [
+    { horario: "10:50", mensagem: "Oi", nome: "Luis", id: 0 },
+    { horario: "10:50", mensagem: "Eae mano", nome: "Jorge", id: 1 },
+    { horario: "10:50", mensagem: "Falaaa", nome: "Luis", id: 0 },
+  ];
 </script>
 
 <section id="chats">
@@ -11,7 +19,6 @@
       <input placeholder="Pesquisar uma conversa..." />
       <button>Pesquisar</button>
     </div>
-
     <button class="chat-card">
       <header class="chat-card-header">
         <p class="chat-card-name">Titulo</p>
@@ -43,17 +50,9 @@
     </p>
   </header>
   <div id="curr-chat-messages-holder">
-    <div class="msg-card">
-      <header class="msg-card-header">
-        <p class="msg-card-name">Luis</p>
-      </header>
-      <footer class="msg-card-footer">
-        <p class="msg-card-time">10:45</p>
-        <p class="msg-card-status">
-          <span class="msg-card-msg">Alguem aqui no chat</span>
-        </p>
-      </footer>
-    </div>
+    {#each mensagens as mensagem}
+      <CardMensagem {mensagem} {meuId} />
+    {/each}
   </div>
   <footer id="curr-chat-footer" class="section-footer">
     <input id="send-message" placeholder="Escreva uma mensagem..." />

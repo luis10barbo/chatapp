@@ -90,6 +90,29 @@ body {
     flex-direction: column;
 
     gap: var(--small-padding);
+    padding: var(--small-padding);
+
+    overflow-x: hidden;
+}
+
+@keyframes new-message-right {
+    from {
+        transform: translateX(-100%);
+        opacity: 0%;
+    } to {
+        transform: translate(0%);
+        opacity: 100%;
+    }
+}
+
+@keyframes new-message-left {
+    from {
+        transform: translateX(100%);
+        opacity: 0%;
+    } to {
+        transform: translateX(0%);
+        opacity: 100%;
+    }
 }
 
 .msg-card {
@@ -99,6 +122,15 @@ body {
     width: fit-content;
     padding: var(--small-padding);
     border-radius: var(--arredondamento);
+
+    animation: new-message-right 150ms linear;
+}
+.msg-card.owned {
+    align-self: end;
+    background-color: var(--cor-confirmar);
+    color: var(--cor-em-confirmar);
+    animation: new-message-left 150ms linear;
+
 }
 
 input {
