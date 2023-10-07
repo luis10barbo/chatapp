@@ -94,7 +94,7 @@ impl Handler<ClientActorMessage> for Lobby {
                     SocketMessage {
                         message_type: crate::message::MessageTypes::TEXT,
                         message: msg.msg.clone(),
-                        id: None,
+                        id: Some(msg.id),
                     },
                     conn_id,
                 )

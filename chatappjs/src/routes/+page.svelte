@@ -1,24 +1,61 @@
 <script lang="ts">
   import CardMensagem from "./CardMensagem.svelte";
   import type { Mensagem } from "./CardMensagem.svelte";
+  import { WebSocket } from "ws";
   import "./style.css";
   const meuId = 0;
-  const mensagens: Mensagem[] = [
+  let mensagens: Mensagem[];
+  $: mensagens = [
     { horario: "10:50", mensagem: "Oi", nome: "Luis", id: 0 },
     { horario: "10:50", mensagem: "Eae mano", nome: "Jorge", id: 1 },
     { horario: "10:50", mensagem: "Falaaa", nome: "Luis", id: 0 },
   ];
+  // const ws = new WebSocket(
+  //   "http://127.0.0.1:8080/chats/d9b49810-a1cb-440a-9e66-c293aa61d4d9"
+  // );
+
+  // ws.on("error", console.error);
+
+  // ws.on("open", () => {
+  //   ws.send("Oiii");
+  // });
+  // type MensagemSocket = {
+  //   message_type: string;
+  //   message: string;
+  //   id: string;
+  // };
+  // // $: teste = "inicial";
+  // ws.on("message", (raw) => {
+  //   func();
+  //   const mensagem: MensagemSocket = JSON.parse(raw.toString());
+  //   mensagens = [
+  //     ...mensagens,
+  //     {
+  //       horario: "00:00",
+  //       id: 0,
+  //       mensagem: mensagem.message,
+  //       nome: "teste",
+  //     },
+  //   ];
+  //   console.log(mensagens);
+  // });
+
+  $: teste = "";
+  const func = () => {
+    console.log("teste");
+    teste = "teste";
+  };
 </script>
 
 <div id="page">
   <section id="chats">
     <header id="chats-header" class="section-header">
-      <p>Conversas</p>
+      <p>Conversas {teste}</p>
     </header>
     <section id="chats-holder">
       <div id="chat-search-holder">
         <input placeholder="Pesquisar uma conversa..." />
-        <button>Pesquisar</button>
+        <button on:click={() => func()}>Pesquisar</button>
       </div>
       <button class="chat-card">
         <header class="chat-card-header">
