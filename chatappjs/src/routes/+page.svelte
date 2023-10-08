@@ -1,35 +1,24 @@
 <script lang="ts">
-  import CardMensagem from "./CardMensagem.svelte";
-  import type { Mensagem } from "./CardMensagem.svelte";
-  // import { WebSocket } from "ws";
-  import { browser } from "$app/environment";
   import "./style.css";
-  import { onMount } from "svelte";
   import ContainerChat from "./ContainerChat.svelte";
-  const meuId = 0;
-  let mensagens: Mensagem[];
-  $: mensagens = [
-    { horario: "10:50", mensagem: "Oi", nome: "Luis", id: 0 },
-    { horario: "10:50", mensagem: "Eae mano", nome: "Jorge", id: 1 },
-    { horario: "10:50", mensagem: "Falaaa", nome: "Luis", id: 0 },
-  ];
-
-  $: teste = "";
-  const func = () => {
-    console.log("teste");
-    teste = "teste";
-  };
+  // const meuId = 0;
+  // let mensagens: Mensagem[];
+  // $: mensagens = [
+  //   { horario: "10:50", mensagem: "Oi", nome: "Luis", id: 0 },
+  //   { horario: "10:50", mensagem: "Eae mano", nome: "Jorge", id: 1 },
+  //   { horario: "10:50", mensagem: "Falaaa", nome: "Luis", id: 0 },
+  // ];
 </script>
 
 <div id="page">
   <section id="chats">
     <header id="chats-header" class="section-header">
-      <p>Conversas {teste}</p>
+      <p>Conversas</p>
     </header>
     <section id="chats-holder">
       <div id="chat-search-holder">
         <input placeholder="Pesquisar uma conversa..." />
-        <button on:click={() => func()}>Pesquisar</button>
+        <button>Pesquisar</button>
       </div>
       <button class="chat-card">
         <header class="chat-card-header">
