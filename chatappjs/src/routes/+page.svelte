@@ -1,8 +1,11 @@
 <script lang="ts">
   import CardMensagem from "./CardMensagem.svelte";
   import type { Mensagem } from "./CardMensagem.svelte";
-  import { WebSocket } from "ws";
+  // import { WebSocket } from "ws";
+  import { browser } from "$app/environment";
   import "./style.css";
+  import { onMount } from "svelte";
+  import ContainerChat from "./ContainerChat.svelte";
   const meuId = 0;
   let mensagens: Mensagem[];
   $: mensagens = [
@@ -10,35 +13,6 @@
     { horario: "10:50", mensagem: "Eae mano", nome: "Jorge", id: 1 },
     { horario: "10:50", mensagem: "Falaaa", nome: "Luis", id: 0 },
   ];
-  // const ws = new WebSocket(
-  //   "http://127.0.0.1:8080/chats/d9b49810-a1cb-440a-9e66-c293aa61d4d9"
-  // );
-
-  // ws.on("error", console.error);
-
-  // ws.on("open", () => {
-  //   ws.send("Oiii");
-  // });
-  // type MensagemSocket = {
-  //   message_type: string;
-  //   message: string;
-  //   id: string;
-  // };
-  // // $: teste = "inicial";
-  // ws.on("message", (raw) => {
-  //   func();
-  //   const mensagem: MensagemSocket = JSON.parse(raw.toString());
-  //   mensagens = [
-  //     ...mensagens,
-  //     {
-  //       horario: "00:00",
-  //       id: 0,
-  //       mensagem: mensagem.message,
-  //       nome: "teste",
-  //     },
-  //   ];
-  //   console.log(mensagens);
-  // });
 
   $: teste = "";
   const func = () => {
@@ -76,25 +50,5 @@
       <button>Sair</button>
     </footer>
   </section>
-  <section id="curr-chat">
-    <header id="curr-chat-header" class="section-header">
-      <img id="img-curr-chat" />
-      <div id="curr-chat-info">
-        <p>Grupo Atual</p>
-        <p class="chat-status" />
-      </div>
-      <p id="curr-chat-online-holder">
-        <span id="curr-chat-online-count">0</span> Online
-      </p>
-    </header>
-    <div id="curr-chat-messages-holder">
-      {#each mensagens as mensagem}
-        <CardMensagem {mensagem} {meuId} />
-      {/each}
-    </div>
-    <footer id="curr-chat-footer" class="section-footer">
-      <input id="send-message" placeholder="Escreva uma mensagem..." />
-      <button id="send-message-button">Enviar</button>
-    </footer>
-  </section>
+  <ContainerChat idChat="d9b49810-a1cb-440a-9e66-c293aa61d4d9" />
 </div>
