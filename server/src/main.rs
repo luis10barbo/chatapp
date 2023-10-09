@@ -7,10 +7,12 @@ pub mod socket;
 use std::sync::{Arc, Mutex};
 
 use actix::{Actor, Addr};
+use actix_cors::Cors;
 use actix_session::{storage::CookieSessionStore, SessionMiddleware};
 use actix_web::{
     cookie::Key,
     get,
+    http::header,
     web::{Data, Path, Payload},
     App, HttpRequest, HttpResponse, HttpServer, Responder,
 };
@@ -32,12 +34,22 @@ async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_LOG", "debug");
     env_logger::init();
     let chat_server = Lobby::default().start();
+
     HttpServer::new(move || {
         App::new()
             .wrap(
                 SessionMiddleware::builder(CookieSessionStore::default(), Key::from(&[0; 64]))
                     .cookie_secure(false)
                     .build(),
+            )
+            .wrap(
+                Cors::default()
+                    .allowed_origin("http://localhost:5173")
+                    .allowed_origin("http://localhost/")
+                    .allowed_methods(vec!["GET", "POST"])
+                    .allowed_header(actix_web::http::header::ACCEPT)
+                    .allowed_header(actix_web::http::header::CONTENT_TYPE)
+                    .max_age(3600),
             )
             .app_data(Data::new(AppContext {
                 db: Arc::new(Mutex::new(db::get().unwrap())),

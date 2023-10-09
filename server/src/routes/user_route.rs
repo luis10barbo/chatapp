@@ -37,8 +37,8 @@ async fn create_user(app_ctx: Data<AppContext>, body: web::Json<CreateUserBody>)
 }
 #[derive(Debug, Deserialize)]
 struct LoginUserBody {
-    nickname: String,
-    password: String,
+    usuario: String,
+    senha: String,
 }
 const USER_ID_KEY: &str = "user_id";
 
@@ -54,7 +54,7 @@ async fn login_user(
             .db
             .lock()
             .unwrap()
-            .login_user(body.nickname.clone(), body.password.clone())
+            .login_user(body.usuario.clone(), body.senha.clone())
             .unwrap();
 
         if user_id != 0 {
