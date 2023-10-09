@@ -66,6 +66,11 @@
       bind:value={mensagemEnviar}
       id="send-message"
       placeholder="Escreva uma mensagem..."
+      on:keydown={(event) => {
+        if (event.key === "Enter") {
+          enviarMensagem();
+        }
+      }}
     />
     <button
       id="send-message-button"
