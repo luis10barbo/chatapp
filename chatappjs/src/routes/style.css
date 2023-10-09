@@ -46,7 +46,7 @@ body {
   display: flex;
   flex-direction: row;
   width: 100%;
-  max-width: 1080px;
+  /* max-width: 1080px; */
 }
 
 .section-header,
