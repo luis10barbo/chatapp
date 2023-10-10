@@ -6,7 +6,7 @@ use actix_web::{
 };
 use serde::Deserialize;
 
-use crate::{db::user::UserTable, AppContext};
+use crate::{db::user_db::UserTable, AppContext};
 
 pub fn user_scope() -> Scope {
     web::scope("/user")

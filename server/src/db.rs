@@ -1,9 +1,9 @@
 pub mod session_db;
-pub mod user;
+pub mod user_db;
 
 use rusqlite::{Connection, Error};
 
-use user::USER_TABLE_SQL;
+use user_db::USER_TABLE_SQL;
 
 const DB_NAME: &str = "database.sqlite";
 pub fn get() -> Result<Database, rusqlite::Error> {
