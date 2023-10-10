@@ -1,12 +1,16 @@
-use actix_session::Session;
+use actix::Addr;
+use actix_session::{Session, SessionGetError};
 use actix_web::{
     get, post,
+    web::Payload,
     web::{self, Data},
-    HttpResponse, Responder, Scope,
+    HttpRequest, HttpResponse, Responder, Scope,
 };
+use actix_web_actors::ws;
 use serde::Deserialize;
+use uuid::Uuid;
 
-use crate::{db::user_db::UserTable, AppContext};
+use crate::{db::user_db::UserTable, lobby::Lobby, socket::ChatWs, AppContext};
 
 pub fn user_scope() -> Scope {
     web::scope("/user")
@@ -14,6 +18,7 @@ pub fn user_scope() -> Scope {
         .service(login_user)
         .service(user_info)
         .service(rota_sair)
+        .service(connect_to_chat)
 }
 
 #[derive(Debug, Deserialize)]
@@ -63,7 +68,7 @@ async fn login_user(
 #[get("/")]
 async fn user_info(app_ctx: Data<AppContext>, session: Session) -> impl Responder {
     let user_id = session.get::<usize>(USER_ID_KEY).unwrap();
-
+    println!("{:?}", session.entries());
     if user_id.is_none() {
         return HttpResponse::Unauthorized().body("Usuario nao logado");
     }
@@ -76,13 +81,38 @@ async fn user_info(app_ctx: Data<AppContext>, session: Session) -> impl Responde
     HttpResponse::Ok().json(user)
 }
 
-#[get("/sair")]
+pub fn adquirir_id_sessao(session: &Session) -> Result<Option<usize>, SessionGetError> {
+    session.get::<usize>(USER_ID_KEY)
+}
+
+#[post("/sair")]
 async fn rota_sair(session: Session) -> impl Responder {
     let user_id = session.get::<usize>(USER_ID_KEY);
+    println!("Deslogando!!!");
     if user_id.is_err() {
         return HttpResponse::InternalServerError().body("Erro ao adquirir a sessao");
     }
 
     session.remove(USER_ID_KEY);
     HttpResponse::Ok().body("Deslogado com sucesso!")
+}
+
+#[get("/chat")]
+pub async fn connect_to_chat(
+    app_ctx: Data<AppContext>,
+    req: HttpRequest,
+    session: Session,
+) -> Result<HttpResponse, actix_web::Error> {
+    let user_id = session.get::<usize>(USER_ID_KEY).unwrap();
+    println!("{:?}", session.entries());
+    if user_id.is_none() {
+        return Ok(HttpResponse::Unauthorized().body("Usuario nao logado"));
+    }
+    let user = app_ctx
+        .db
+        .lock()
+        .unwrap()
+        .get_user(user_id.unwrap())
+        .unwrap();
+    Ok(HttpResponse::Ok().json(user))
 }

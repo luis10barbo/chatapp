@@ -13,7 +13,7 @@ pub enum MessageTypes {
 pub struct SocketMessage {
     pub message_type: MessageTypes,
     pub message: String,
-    pub id: Option<Uuid>,
+    pub id: Option<usize>,
 }
 
 impl SocketMessage {

@@ -1,18 +1,35 @@
 <script lang="ts">
   import "./style.css";
   import ContainerChat from "./ContainerChat.svelte";
-  import { getJson, requestPerfil } from "../utils/requests";
+  import { getJson, postJson, requestPerfil } from "../utils/requests";
   import { onMount } from "svelte";
+  import { PUBLIC_URL_BACKEND } from "$env/static/public";
 
-  let usuario: any | undefined = "";
+  type Usuario = {
+    user_email?: string;
+    user_id: number;
+    user_name?: string;
+    user_nick: string;
+    user_status?: string;
+  };
 
+  let usuario: Usuario | undefined = undefined;
+  function redirecionarLogin() {
+    window.location.replace("/login");
+  }
+  async function deslogar() {
+    await postJson("http://" + PUBLIC_URL_BACKEND + "/user/sair", {});
+    // window.location.reload();
+    // redirecionarLogin();
+  }
   async function getUsuario() {
     const res = await requestPerfil();
     if (res.status === 200) {
       usuario = JSON.parse(await res.text());
+      console.log(usuario);
       return;
     }
-    window.location.replace("/login");
+    redirecionarLogin();
   }
   onMount(async () => {
     await getUsuario();
@@ -53,9 +70,12 @@
       <footer id="chats-footer" class="section-footer">
         <button>Contatos</button>
         <button>Perfil</button>
-        <button>Sair</button>
+        <button on:click={deslogar}>Sair</button>
       </footer>
     </section>
-    <ContainerChat idChat="d9b49810-a1cb-440a-9e66-c293aa61d4d9" />
+    <ContainerChat
+      idChat="d9b49810-a1cb-440a-9e66-c293aa61d4d9"
+      meuId={usuario.user_id}
+    />
   {/if}
 </div>

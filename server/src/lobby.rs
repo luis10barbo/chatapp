@@ -10,8 +10,8 @@ use uuid::Uuid;
 type Socket = Recipient<WsMessage>;
 
 pub struct Lobby {
-    sessions: HashMap<Uuid, Socket>,     //self id to self
-    rooms: HashMap<Uuid, HashSet<Uuid>>, //room id  to list of users id
+    sessions: HashMap<usize, Socket>,     //self id to self
+    rooms: HashMap<Uuid, HashSet<usize>>, //room id  to list of users id
 }
 
 impl Actor for Lobby {
@@ -29,7 +29,7 @@ pub struct WsMessage(pub String);
 pub struct Connect {
     pub addr: Recipient<WsMessage>,
     pub lobby_id: Uuid,
-    pub id: Uuid,
+    pub id: usize,
 }
 
 //WsConn sends this to a lobby to say "take me out please"
@@ -37,14 +37,14 @@ pub struct Connect {
 #[rtype(result = "()")]
 pub struct Disconnect {
     pub room_id: Uuid,
-    pub id: Uuid,
+    pub id: usize,
 }
 
 //client sends this to the lobby for the lobby to echo out.
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct ClientActorMessage {
-    pub id: Uuid,
+    pub id: usize,
     pub msg: String,
     pub room_id: Uuid,
 }
@@ -59,7 +59,7 @@ impl ClientActorMessage {
 }
 
 impl Lobby {
-    fn send_message(&self, message: SocketMessage, target_id: &Uuid) {
+    fn send_message(&self, message: SocketMessage, target_id: &usize) {
         if let Some(scoket_recipient) = self.sessions.get(target_id) {
             let _ = scoket_recipient.do_send(WsMessage(serde_json::to_string(&message).unwrap()));
             return;

@@ -9,7 +9,9 @@ use std::sync::{Arc, Mutex};
 
 use actix::{Actor, Addr};
 use actix_cors::Cors;
-use actix_session::{config::PersistentSession, storage::CookieSessionStore, SessionMiddleware};
+use actix_session::{
+    config::PersistentSession, storage::CookieSessionStore, Session, SessionMiddleware,
+};
 use actix_web::{
     cookie::{time::Duration, Key},
     get,
@@ -24,7 +26,7 @@ use routes::user_route::user_scope;
 use serde::Deserialize;
 use uuid::Uuid;
 
-use crate::socket::ChatWs;
+use crate::{routes::user_route::adquirir_id_sessao, socket::ChatWs};
 
 struct AppContext {
     db: Arc<Mutex<Database>>,
@@ -45,7 +47,7 @@ async fn main() -> std::io::Result<()> {
                 SessionMiddleware::builder(CookieSessionStore::default(), Key::from(&[0; 64]))
                     .cookie_secure(false)
                     .session_lifecycle(PersistentSession::default().session_ttl(Duration::weeks(2)))
-                    .cookie_name("chat-cookie".into())
+                    .cookie_name("ssid".into())
                     .cookie_secure(false)
                     .cookie_same_site(actix_web::cookie::SameSite::Strict)
                     .cookie_http_only(true)
@@ -95,7 +97,18 @@ pub async fn connect_to_chat(
     stream: Payload,
     srv: Data<Addr<Lobby>>,
     info: Path<ConnectChatInfo>,
-) -> impl Responder {
-    let ws = ChatWs::new(info.uuid, srv.get_ref().clone());
+    session: Session,
+) -> Result<HttpResponse, actix_web::Error> {
+    let id_usuario = adquirir_id_sessao(&session);
+    println!("{:?}", session.entries());
+    println!("{:?}", req.cookies());
+    if id_usuario.is_err() {
+        return Ok(HttpResponse::NotFound().body("Sessao nao encontrada!"));
+    }
+    let id_usuario = id_usuario.unwrap();
+    if id_usuario.is_none() {
+        return Ok(HttpResponse::Unauthorized().body("Usuario nao logado"));
+    }
+    let ws = ChatWs::new(info.uuid, srv.get_ref().clone(), id_usuario.unwrap());
     ws::start(ws, &req, stream)
 }

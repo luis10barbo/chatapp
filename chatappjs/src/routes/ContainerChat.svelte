@@ -3,10 +3,10 @@
   import type { Mensagem } from "./CardMensagem.svelte";
   import CardMensagem from "./CardMensagem.svelte";
 
+  export let meuId: number;
   export let idChat: string;
   let mensagens: Mensagem[];
   $: mensagens = [];
-  const meuId = 0;
 
   let mensagemEnviar = "";
 
