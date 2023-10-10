@@ -50,12 +50,15 @@ async fn login_user(
 ) -> impl Responder {
     let mut res = false;
     {
-        let user_id = app_ctx
+        let login_res = app_ctx
             .db
             .lock()
             .unwrap()
-            .login_user(body.usuario.clone(), body.senha.clone())
-            .unwrap();
+            .login_user(body.usuario.clone(), body.senha.clone());
+        if login_res.is_err() {
+            return HttpResponse::Ok().body(login_res.unwrap_err().to_string());
+        }
+        let user_id = login_res.unwrap();
 
         if user_id != 0 {
             session.insert(USER_ID_KEY, user_id);
