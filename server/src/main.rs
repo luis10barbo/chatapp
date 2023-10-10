@@ -48,8 +48,7 @@ async fn main() -> std::io::Result<()> {
             )
             .wrap(
                 Cors::default()
-                    .allowed_origin("http://localhost:5173")
-                    .allowed_origin("http://localhost/")
+                    .allow_any_origin()
                     .allowed_methods(vec!["GET", "POST"])
                     .allowed_header(actix_web::http::header::ACCEPT)
                     .allowed_header(actix_web::http::header::CONTENT_TYPE)
