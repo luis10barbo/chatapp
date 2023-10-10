@@ -13,6 +13,7 @@ pub fn user_scope() -> Scope {
         .service(create_user)
         .service(login_user)
         .service(user_info)
+        .service(rota_sair)
 }
 
 #[derive(Debug, Deserialize)]
