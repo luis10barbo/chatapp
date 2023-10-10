@@ -17,3 +17,6 @@ rusqlite = { version = "0.29", features = ["bundled"] }
 argon2 = "0.5.2"
 actix-session = { version = "0.8.0", features = ["cookie-session"] }
 actix-cors = "0.6.4"
+log = "0.4"
+log4rs = "1.2"
+chrono = "0.4"

@@ -1,5 +1,6 @@
 pub mod db;
 mod lobby;
+pub mod logger;
 pub mod message;
 pub mod routes;
 pub mod socket;
@@ -18,6 +19,7 @@ use actix_web::{
 use actix_web_actors::ws;
 use db::Database;
 use lobby::Lobby;
+use logger::setup_logger;
 use routes::user_route::user_scope;
 use serde::Deserialize;
 use uuid::Uuid;
@@ -30,8 +32,11 @@ struct AppContext {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    std::env::set_var("RUST_LOG", "debug");
-    env_logger::init();
+    // std::env::set_var("RUST_LOG", "debug");
+    // env_logger::init();
+    if let Err(err) = setup_logger() {
+        panic!("Error setting up logger! {}", err);
+    };
     let chat_server = Lobby::default().start();
 
     HttpServer::new(move || {

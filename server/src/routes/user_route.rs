@@ -74,3 +74,14 @@ async fn user_info(app_ctx: Data<AppContext>, session: Session) -> impl Responde
         .unwrap();
     HttpResponse::Ok().json(user)
 }
+
+#[get("/sair")]
+async fn rota_sair(session: Session) -> impl Responder {
+    let user_id = session.get::<usize>(USER_ID_KEY);
+    if user_id.is_err() {
+        return HttpResponse::InternalServerError().body("Erro ao adquirir a sessao");
+    }
+
+    session.remove(USER_ID_KEY);
+    HttpResponse::Ok().body("Deslogado com sucesso!")
+}
