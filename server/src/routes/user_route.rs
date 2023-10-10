@@ -16,13 +16,6 @@ pub fn user_scope() -> Scope {
 }
 
 #[derive(Debug, Deserialize)]
-struct CreateUserBody {
-    usuario: String,
-    // name: Option<String>,
-    password: String,
-}
-
-#[derive(Debug, Deserialize)]
 struct AuthUserBody {
     usuario: String,
     senha: String,
@@ -48,13 +41,15 @@ async fn login_user(
 ) -> impl Responder {
     let db = app_ctx.db.lock().unwrap();
     let login_res = db.login_user(body.usuario.clone(), body.senha.clone());
-    if let Err(login_res) = login_res {
+    if login_res.is_err() {
         return HttpResponse::NotFound().body("Usuario não encontrado");
     }
     let user_id = login_res.unwrap();
     if let Some(user_id) = user_id {
-        session.insert(USER_ID_KEY, user_id);
-        println!("{:?}", session.entries());
+        if let Err(err) = session.insert(USER_ID_KEY, user_id) {
+            return HttpResponse::InternalServerError()
+                .body(format!("Erro ao salvar sessão: {}", err.to_string()));
+        };
 
         if let Ok(user) = db.get_user(user_id) {
             return HttpResponse::Ok().json(user);

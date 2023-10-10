@@ -1,14 +1,9 @@
 pub mod session_db;
 pub mod user;
-use argon2::{
-    password_hash::{rand_core::OsRng, SaltString},
-    Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
-};
-use rusqlite::{params, Connection, Error};
+
+use rusqlite::{Connection, Error};
 
 use user::USER_TABLE_SQL;
-
-use self::user::{User, UserTable};
 
 const DB_NAME: &str = "database.sqlite";
 pub fn get() -> Result<Database, rusqlite::Error> {

@@ -12,7 +12,6 @@ use actix_session::{config::PersistentSession, storage::CookieSessionStore, Sess
 use actix_web::{
     cookie::{time::Duration, Key},
     get,
-    http::header,
     web::{Data, Path, Payload},
     App, HttpRequest, HttpResponse, HttpServer, Responder,
 };

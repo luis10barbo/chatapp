@@ -83,7 +83,7 @@ impl Default for Lobby {
 impl Handler<ClientActorMessage> for Lobby {
     type Result = ();
 
-    fn handle(&mut self, msg: ClientActorMessage, ctx: &mut Self::Context) -> Self::Result {
+    fn handle(&mut self, msg: ClientActorMessage, _: &mut Self::Context) -> Self::Result {
         self.rooms
             .get(&msg.room_id)
             .unwrap()
@@ -105,7 +105,7 @@ impl Handler<ClientActorMessage> for Lobby {
 impl Handler<Disconnect> for Lobby {
     type Result = ();
 
-    fn handle(&mut self, msg: Disconnect, ctx: &mut Self::Context) -> Self::Result {
+    fn handle(&mut self, msg: Disconnect, _: &mut Self::Context) -> Self::Result {
         if self.sessions.remove(&msg.id).is_some() {
             self.rooms
                 .get(&msg.room_id)
@@ -136,7 +136,7 @@ impl Handler<Disconnect> for Lobby {
 impl Handler<Connect> for Lobby {
     type Result = ();
 
-    fn handle(&mut self, msg: Connect, ctx: &mut Self::Context) -> Self::Result {
+    fn handle(&mut self, msg: Connect, _: &mut Self::Context) -> Self::Result {
         self.rooms
             .entry(msg.lobby_id)
             .or_insert_with(HashSet::new)
