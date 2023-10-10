@@ -1,3 +1,4 @@
+pub mod session_db;
 pub mod user;
 use argon2::{
     password_hash::{rand_core::OsRng, SaltString},

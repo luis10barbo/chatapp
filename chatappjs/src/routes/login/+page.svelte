@@ -1,6 +1,8 @@
 <script lang="ts">
   import "./style.css";
   import { PUBLIC_URL_BACKEND } from "$env/static/public";
+  import { getJson, postJson } from "../../utils/requests";
+  import { goto } from "$app/navigation";
   const operacoes = {
     LOGIN: "LOGIN",
     REGISTRO: "REGISTRO",
@@ -13,25 +15,49 @@
   let mensagem: string | undefined = undefined;
   let operacaoAtual: Operacoes = operacoes.LOGIN;
   function limparInput() {
+    return;
     usuario = "";
     senha = "";
+  }
+  function setarMensagem(msg: string) {
+    mensagem = msg;
+    erro = undefined;
+  }
+  function setarErro(msg: string) {
+    mensagem = undefined;
+    erro = msg;
   }
   function processarDados() {
     if (operacaoAtual === operacoes.LOGIN) logar();
     else if (operacaoAtual === operacoes.REGISTRO) registrar();
   }
   async function logar() {
-    await fetch("http://" + PUBLIC_URL_BACKEND + "/user/login", {
-      method: "POST",
-      body: JSON.stringify({
-        usuario,
-        senha,
-      }),
-      headers: { "Content-Type": "application/json" },
+    postJson("http://" + PUBLIC_URL_BACKEND + "/user/login", {
+      usuario,
+      senha,
+    }).then(async (res) => {
+      if (res.status === 200) {
+        setarMensagem("Login bem sucedido! Redirecionando...");
+        window.location.replace("/");
+      } else if (res.status === 401 || res.status == 404) {
+        setarErro("Falha ao logar: " + (await res.text()));
+      }
     });
+
     limparInput();
   }
   async function registrar() {
+    await postJson("http://" + PUBLIC_URL_BACKEND + "/user/registrar", {
+      usuario,
+      senha,
+    }).then(async (res) => {
+      if (res.status === 200) {
+        setarMensagem("Registro bem sucedido! Redirecionando...");
+        window.location.replace("/");
+      } else if (res.status === 404) {
+        setarErro("Falha ao registrar: " + (await res.text()));
+      }
+    });
     limparInput();
   }
 </script>
@@ -39,8 +65,12 @@
 <div id="page">
   <div id="container-auth">
     {#if erro}
-      <div id="caixa-erro">
+      <div class="caixa-mensagem caixa-erro">
         {erro}
+      </div>
+    {:else if mensagem}
+      <div class="caixa-mensagem caixa-ok">
+        {mensagem}
       </div>
     {/if}
     {#if operacaoAtual === operacoes.LOGIN}

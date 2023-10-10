@@ -1,97 +1,104 @@
-html, body {
-    display: flex;
-    width: 100%;
-    height: 100%;
+html,
+body {
+  display: flex;
+  width: 100%;
+  height: 100%;
 }
 * {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 #page {
-    display: flex;
-    width: 100%;
-    height: 100%;
-    justify-content: center;
-    align-items: center;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
 }
 
 #container-auth-title {
-    font-size: 20px;
-    font-weight: bold;
+  font-size: 20px;
+  font-weight: bold;
 }
 
 #container-auth {
-    width: 100%;
-    max-width: 350px;
-    display:flex;
-    flex-direction: column;
-    gap:20px
+  width: 100%;
+  max-width: 350px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 #auth-input-holder {
-    display: flex;
-    flex-direction: column;
-    gap:10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .input-label {
-    font-size: 16px;
+  font-size: 16px;
 }
 
-input, button {
-    font-size: 16px;
-    padding: 10px;
-    outline: none;
+input,
+button {
+  font-size: 16px;
+  padding: 10px;
+  outline: none;
 
-    border: none;
-    background-color: #EAEAEA;
-    cursor: pointer;
-} 
-input:hover, button:hover {
-    background-color: #c9c9c9;
-    border-radius: 0.25rem;
-
+  border: none;
+  background-color: #eaeaea;
+  cursor: pointer;
+  border-radius: 0.25rem;
+}
+input:hover,
+button:hover {
+  background-color: #c9c9c9;
 }
 
 #send-button {
-    width: fit-content;
-    background-color: #E8FBEA;
-    color:#005408;
+  width: fit-content;
+  background-color: #d6f5d9;
+  color: #005408;
 }
 #send-button:hover {
-    background-color: #b3ff9f;
-
+  background-color: rgb(207, 245, 196);
 }
 
 p {
-    margin:0;
+  margin: 0;
 }
 
 #container-auth-footer {
-    display:flex;
-    justify-content: center;
-    align-items: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .text-button {
-    padding: 0;
-    background-color: transparent;
-    color: #3079CF;
-
+  padding: 0;
+  background-color: transparent;
+  color: #3079cf;
 }
 .text-button:hover {
-    color: #60aaff;
+  color: #60aaff;
 }
 .text-button:hover {
-    background-color: transparent;
+  background-color: transparent;
 }
 .full-width {
-    width: 100%;
+  width: 100%;
 }
 
-#caixa-erro {
-    width: 100%;
-    padding: 1rem;
-    background-color: rgb(245, 196, 196);
-    color: rgb(89, 0, 0);
-    border-radius: 0.25rem;
+.caixa-mensagem {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 0.25rem;
+}
+
+.caixa-ok {
+  background-color: rgb(207, 245, 196);
+  color: rgb(0, 89, 19);
+}
+.caixa-erro {
+  background-color: rgb(245, 196, 196);
+  color: rgb(89, 0, 0);
 }

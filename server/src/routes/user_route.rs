@@ -49,26 +49,27 @@ async fn login_user(
     let db = app_ctx.db.lock().unwrap();
     let login_res = db.login_user(body.usuario.clone(), body.senha.clone());
     if let Err(login_res) = login_res {
-        return HttpResponse::Ok().body(login_res.to_string());
+        return HttpResponse::NotFound().body("Usuario não encontrado");
     }
     let user_id = login_res.unwrap();
     if let Some(user_id) = user_id {
         session.insert(USER_ID_KEY, user_id);
+        println!("{:?}", session.entries());
 
         if let Ok(user) = db.get_user(user_id) {
             return HttpResponse::Ok().json(user);
         }
         return HttpResponse::InternalServerError().body("Error fetching user");
     }
-    return HttpResponse::Unauthorized().body("Login falhou");
+    return HttpResponse::Unauthorized().body("Senha incorreta");
 }
 
 #[get("/")]
 async fn user_info(app_ctx: Data<AppContext>, session: Session) -> impl Responder {
-    println!("{:?}", session.entries());
     let user_id = session.get::<usize>(USER_ID_KEY).unwrap();
+
     if user_id.is_none() {
-        return HttpResponse::Ok().body(());
+        return HttpResponse::Unauthorized().body("Usuario nao logado");
     }
     let user = app_ctx
         .db

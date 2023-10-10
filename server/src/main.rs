@@ -8,9 +8,9 @@ use std::sync::{Arc, Mutex};
 
 use actix::{Actor, Addr};
 use actix_cors::Cors;
-use actix_session::{storage::CookieSessionStore, SessionMiddleware};
+use actix_session::{config::PersistentSession, storage::CookieSessionStore, SessionMiddleware};
 use actix_web::{
-    cookie::Key,
+    cookie::{time::Duration, Key},
     get,
     http::header,
     web::{Data, Path, Payload},
@@ -40,6 +40,11 @@ async fn main() -> std::io::Result<()> {
             .wrap(
                 SessionMiddleware::builder(CookieSessionStore::default(), Key::from(&[0; 64]))
                     .cookie_secure(false)
+                    .session_lifecycle(PersistentSession::default().session_ttl(Duration::weeks(2)))
+                    .cookie_name("chat-cookie".into())
+                    .cookie_secure(false)
+                    .cookie_same_site(actix_web::cookie::SameSite::Strict)
+                    .cookie_http_only(true)
                     .build(),
             )
             .wrap(
@@ -49,6 +54,7 @@ async fn main() -> std::io::Result<()> {
                     .allowed_methods(vec!["GET", "POST"])
                     .allowed_header(actix_web::http::header::ACCEPT)
                     .allowed_header(actix_web::http::header::CONTENT_TYPE)
+                    .supports_credentials()
                     .max_age(3600),
             )
             .app_data(Data::new(AppContext {
