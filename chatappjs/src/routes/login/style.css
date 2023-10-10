@@ -1,0 +1,97 @@
+html, body {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+* {
+    box-sizing: border-box;
+}
+#page {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+#container-auth-title {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+#container-auth {
+    width: 100%;
+    max-width: 350px;
+    display:flex;
+    flex-direction: column;
+    gap:20px
+}
+
+#auth-input-holder {
+    display: flex;
+    flex-direction: column;
+    gap:10px;
+}
+
+.input-label {
+    font-size: 16px;
+}
+
+input, button {
+    font-size: 16px;
+    padding: 10px;
+    outline: none;
+
+    border: none;
+    background-color: #EAEAEA;
+    cursor: pointer;
+} 
+input:hover, button:hover {
+    background-color: #c9c9c9;
+    border-radius: 0.25rem;
+
+}
+
+#send-button {
+    width: fit-content;
+    background-color: #E8FBEA;
+    color:#005408;
+}
+#send-button:hover {
+    background-color: #b3ff9f;
+
+}
+
+p {
+    margin:0;
+}
+
+#container-auth-footer {
+    display:flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.text-button {
+    padding: 0;
+    background-color: transparent;
+    color: #3079CF;
+
+}
+.text-button:hover {
+    color: #60aaff;
+}
+.text-button:hover {
+    background-color: transparent;
+}
+.full-width {
+    width: 100%;
+}
+
+#caixa-erro {
+    width: 100%;
+    padding: 1rem;
+    background-color: rgb(245, 196, 196);
+    color: rgb(89, 0, 0);
+    border-radius: 0.25rem;
+}
