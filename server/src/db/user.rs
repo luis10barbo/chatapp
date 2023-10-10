@@ -28,25 +28,19 @@ pub struct User {
 }
 
 pub trait UserTable {
-    fn create_user(
+    fn create_user(&self, nickname: String, password: String) -> Result<i64, rusqlite::Error>;
+
+    fn login_user(
         &self,
         nickname: String,
-        name: Option<String>,
         password: String,
-    ) -> Result<i64, rusqlite::Error>;
-
-    fn login_user(&self, nickname: String, password: String) -> Result<usize, rusqlite::Error>;
+    ) -> Result<Option<usize>, rusqlite::Error>;
 
     fn get_user(&self, id: usize) -> Result<User, rusqlite::Error>;
 }
 
 impl UserTable for Database {
-    fn create_user(
-        &self,
-        nickname: String,
-        name: Option<String>,
-        password: String,
-    ) -> Result<i64, rusqlite::Error> {
+    fn create_user(&self, nickname: String, password: String) -> Result<i64, rusqlite::Error> {
         let argon = Argon2::default();
 
         let salt = SaltString::generate(&mut OsRng);
@@ -54,12 +48,18 @@ impl UserTable for Database {
             .hash_password(password.as_bytes(), &salt)
             .unwrap()
             .to_string();
-        let mut stmt = self.conn.prepare("INSERT INTO users (user_nick, user_name, password_hash, password_salt) VALUES (?, ?, ?, ?)")?;
-        stmt.execute(params![nickname, name, hash, salt.to_string()])?;
+        let mut stmt = self.conn.prepare(
+            "INSERT INTO users (user_nick, password_hash, password_salt) VALUES (?, ?, ?)",
+        )?;
+        stmt.execute(params![nickname, hash, salt.to_string()])?;
         Ok(self.conn.last_insert_rowid())
     }
 
-    fn login_user(&self, nickname: String, password: String) -> Result<usize, rusqlite::Error> {
+    fn login_user(
+        &self,
+        nickname: String,
+        password: String,
+    ) -> Result<Option<usize>, rusqlite::Error> {
         struct PasswordSelection {
             id: usize,
             password_hash: String,
@@ -77,8 +77,11 @@ impl UserTable for Database {
 
         let parsed_hash = PasswordHash::new(&password_query.password_hash).unwrap();
         let res = Argon2::default().verify_password(password.as_bytes(), &parsed_hash);
+        if res.is_err() {
+            return Ok(None);
+        }
 
-        Ok(password_query.id)
+        Ok(Some(password_query.id))
     }
 
     fn get_user(&self, id: usize) -> Result<User, rusqlite::Error> {

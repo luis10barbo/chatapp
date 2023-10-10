@@ -17,56 +17,50 @@ pub fn user_scope() -> Scope {
 
 #[derive(Debug, Deserialize)]
 struct CreateUserBody {
-    nickname: String,
-    name: Option<String>,
+    usuario: String,
+    // name: Option<String>,
     password: String,
 }
 
-#[post("/register")]
-async fn create_user(app_ctx: Data<AppContext>, body: web::Json<CreateUserBody>) -> impl Responder {
+#[derive(Debug, Deserialize)]
+struct AuthUserBody {
+    usuario: String,
+    senha: String,
+}
+
+#[post("/registrar")]
+async fn create_user(app_ctx: Data<AppContext>, body: web::Json<AuthUserBody>) -> impl Responder {
     let db_ref = app_ctx.db.try_lock().unwrap();
-    let res = db_ref.create_user(
-        body.nickname.clone(),
-        body.name.clone(),
-        body.password.clone(),
-    );
+    let res = db_ref.create_user(body.usuario.clone(), body.senha.clone());
     if res.is_err() {
         return HttpResponse::InternalServerError().body(res.unwrap_err().to_string());
     }
     HttpResponse::Ok().body(format!("Usuario {} criado", res.unwrap()))
 }
-#[derive(Debug, Deserialize)]
-struct LoginUserBody {
-    usuario: String,
-    senha: String,
-}
+
 const USER_ID_KEY: &str = "user_id";
 
 #[post("/login")]
 async fn login_user(
     app_ctx: Data<AppContext>,
-    body: web::Json<LoginUserBody>,
+    body: web::Json<AuthUserBody>,
     session: Session,
 ) -> impl Responder {
-    let mut res = false;
-    {
-        let login_res = app_ctx
-            .db
-            .lock()
-            .unwrap()
-            .login_user(body.usuario.clone(), body.senha.clone());
-        if login_res.is_err() {
-            return HttpResponse::Ok().body(login_res.unwrap_err().to_string());
-        }
-        let user_id = login_res.unwrap();
-
-        if user_id != 0 {
-            session.insert(USER_ID_KEY, user_id);
-            res = true;
-        }
+    let db = app_ctx.db.lock().unwrap();
+    let login_res = db.login_user(body.usuario.clone(), body.senha.clone());
+    if let Err(login_res) = login_res {
+        return HttpResponse::Ok().body(login_res.to_string());
     }
+    let user_id = login_res.unwrap();
+    if let Some(user_id) = user_id {
+        session.insert(USER_ID_KEY, user_id);
 
-    HttpResponse::Ok().body(res.to_string())
+        if let Ok(user) = db.get_user(user_id) {
+            return HttpResponse::Ok().json(user);
+        }
+        return HttpResponse::InternalServerError().body("Error fetching user");
+    }
+    return HttpResponse::Unauthorized().body("Login falhou");
 }
 
 #[get("/")]
