@@ -27,11 +27,16 @@
     mensagem = undefined;
     erro = msg;
   }
+  function limparMensagens() {
+    mensagem = "";
+    erro = "";
+  }
   function processarDados() {
     if (operacaoAtual === operacoes.LOGIN) logar();
     else if (operacaoAtual === operacoes.REGISTRO) registrar();
   }
   async function logar() {
+    limparMensagens();
     postJson("http://" + PUBLIC_URL_BACKEND + "/user/login", {
       usuario,
       senha,
@@ -47,6 +52,7 @@
     limparInput();
   }
   async function registrar() {
+    limparMensagens();
     await postJson("http://" + PUBLIC_URL_BACKEND + "/user/registrar", {
       usuario,
       senha,
