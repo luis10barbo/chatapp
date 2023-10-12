@@ -1,4 +1,7 @@
-use std::time::{Duration, Instant};
+use std::{
+    sync::Arc,
+    time::{Duration, Instant},
+};
 
 use actix::{
     fut, prelude::ContextFutureSpawner, Actor, ActorContext, ActorFutureExt, Addr, AsyncContext,
@@ -53,7 +56,7 @@ impl Handler<WsMessage> for ChatWs {
 impl Actor for ChatWs {
     type Context = ws::WebsocketContext<Self>;
     fn started(&mut self, ctx: &mut Self::Context) {
-        println!("teste ->  {:?}", ctx.address());
+        println!("teste ->  {:p}", &ctx.address());
         self.hb(ctx);
 
         let addr = ctx.address();

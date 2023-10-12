@@ -84,7 +84,7 @@ pub enum RespostaAdquirirIdSessao {
     Erro(HttpResponse),
 }
 
-pub fn adquirir_id_sessao(session: &Session) -> RespostaAdquirirIdSessao {
+pub fn get_user_id(session: &Session) -> RespostaAdquirirIdSessao {
     let res = session.get::<usize>(USER_ID_KEY);
     if res.is_err() {
         return RespostaAdquirirIdSessao::Erro(

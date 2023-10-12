@@ -15,18 +15,18 @@ use crate::{
     lobby::Lobby, routes::user_route::RespostaAdquirirIdSessao, socket::ChatWs, AppContext,
 };
 
-use super::user_route::adquirir_id_sessao;
+use super::user_route::get_user_id;
 
 pub fn chat_scope() -> Scope {
     web::scope("/chat")
-        .service(chat_auth_route)
+        // .service(chat_auth_route)
         .service(connect_to_chat)
 }
 
 #[get("/auth")]
 async fn chat_auth_route(session: Session, app_ctx: Data<AppContext>) -> impl Responder {
     // println!("auth thread -> {:?}", thread::current().id());
-    let res = adquirir_id_sessao(&session);
+    let res = get_user_id(&session);
     let RespostaAdquirirIdSessao::Id(id) = res else {
         let RespostaAdquirirIdSessao::Erro(erro) = res else {
             todo!()
@@ -85,9 +85,8 @@ pub fn get_auth_token(app_ctx: Data<AppContext>, uuid: Uuid) -> AuthTokenRespons
 pub async fn connect_to_chat(
     req: HttpRequest,
     stream: Payload,
-    srv: Data<Addr<Lobby>>,
+    // srv: Data<Addr<Lobby>>,
     info: Path<ConnectChatInfo>,
-    query: Query<ConnectChatQuery>,
     session: Session,
     app_ctx: Data<AppContext>,
 ) -> Result<HttpResponse, actix_web::Error> {
@@ -96,23 +95,30 @@ pub async fn connect_to_chat(
             "route -> {:?}, session -> {:?}, authid -> {:?}, thread -> {:?}",
             app_ctx.auth_tokens.lock().unwrap().keys(),
             session.entries(),
-            query.auth,
+            -1,
             thread::current().id()
         );
     }
-    let res = get_auth_token(app_ctx, query.auth);
+    // let res = get_auth_token(app_ctx, query.auth);
 
-    let AuthTokenResponse::Ok(user_id) = res else {
-        let AuthTokenResponse::Err(error) = res else {
-            todo!()
+    // let AuthTokenResponse::Ok(user_id) = res else {
+    //     let AuthTokenResponse::Err(error) = res else {
+    //         todo!()
+    //     };
+    //     return Ok(error);
+    // };
+
+    // let Some(user_id) = user_id else {
+    //     return Ok(HttpResponse::Unauthorized().body("Not authorized..."));
+    // };
+    let res = get_user_id(&session);
+    let RespostaAdquirirIdSessao::Id(user_id) = res else {
+        let RespostaAdquirirIdSessao::Erro(err) =  res else {
+            todo!();
         };
-        return Ok(error);
+        return Ok(err);
     };
 
-    let Some(user_id) = user_id else {
-        return Ok(HttpResponse::Unauthorized().body("Not authorized..."));
-    };
-
-    let ws = ChatWs::new(info.uuid, srv.get_ref().clone(), user_id);
+    let ws = ChatWs::new(info.uuid, app_ctx.chat_server.clone(), user_id);
     ws::start(ws, &req, stream)
 }

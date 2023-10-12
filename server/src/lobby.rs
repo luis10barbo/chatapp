@@ -84,6 +84,7 @@ impl Handler<ClientActorMessage> for Lobby {
     type Result = ();
 
     fn handle(&mut self, msg: ClientActorMessage, _: &mut Self::Context) -> Self::Result {
+        println!("Mensagem nova em lobby, grupos: {:?}", self.rooms.keys());
         self.rooms
             .get(&msg.room_id)
             .unwrap()
@@ -137,12 +138,23 @@ impl Handler<Connect> for Lobby {
     type Result = ();
 
     fn handle(&mut self, msg: Connect, _: &mut Self::Context) -> Self::Result {
+        println!(
+            "conectando {} ao lobby {}, {:?}",
+            msg.id,
+            msg.room_id,
+            self.rooms.keys()
+        );
+        {
+            println!(
+                "Usuarios ativos no chat: {:?}",
+                self.rooms.get(&msg.room_id)
+            );
+        }
         self.rooms
             .entry(msg.room_id)
             .or_insert_with(HashSet::new)
             .insert(msg.id);
 
-        println!("conectando {} ao lobby {}", msg.id, msg.room_id);
         self.rooms
             .get(&msg.room_id)
             .unwrap()

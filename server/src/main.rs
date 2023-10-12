@@ -29,11 +29,12 @@ use routes::{chat_route::chat_scope, user_route::user_scope};
 use serde::Deserialize;
 use uuid::Uuid;
 
-use crate::{routes::user_route::adquirir_id_sessao, socket::ChatWs};
+use crate::{routes::user_route::get_user_id, socket::ChatWs};
 
 pub struct AppContext {
     db: Arc<Mutex<Database>>,
     auth_tokens: Arc<Mutex<HashMap<Uuid, usize>>>,
+    chat_server: Addr<Lobby>,
 }
 
 #[actix_web::main]
@@ -70,14 +71,15 @@ async fn main() -> std::io::Result<()> {
             .app_data(Data::new(AppContext {
                 db: db.clone(),
                 auth_tokens: auth_tokens.clone(),
+                chat_server: chat_server.clone(),
             }))
-            .app_data(Data::new(chat_server.clone()))
+            // .app_data(Data::new(chat_server.clone()))
             .service(index)
             .service(get_uuid)
             .service(user_scope())
             .service(chat_scope())
     })
-    .bind(("192.168.113.75", 8080))?
+    .bind(("localhost", 8080))?
     .run()
     .await
 }
