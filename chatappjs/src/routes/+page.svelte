@@ -41,6 +41,7 @@
     <div
       style="width: 100%; font-size:30px; display:flex; flex-direction:column; justify-content:center; align-items:center;"
     >
+      <p>{PUBLIC_URL_BACKEND}</p>
       <p>ZipZop 2</p>
       <p style="font-size: 20px;">Carregando...</p>
     </div>

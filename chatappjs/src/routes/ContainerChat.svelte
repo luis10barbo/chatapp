@@ -2,6 +2,8 @@
   import { onMount } from "svelte";
   import type { Mensagem } from "./CardMensagem.svelte";
   import CardMensagem from "./CardMensagem.svelte";
+  import { getJson } from "../utils/requests";
+  import { PUBLIC_URL_BACKEND } from "$env/static/public";
 
   export let meuId: number;
   export let idChat: string;
@@ -27,11 +29,15 @@
     addMensagem({ id: meuId, message: mensagemEnviar, message_type: "TEXT" });
     mensagemEnviar = "";
   }
-  let ws: WebSocket;
-  onMount(async () => {
-    console.log(WebSocket);
+
+  async function setupWebSocket() {
+    const res = await getJson("http://" + PUBLIC_URL_BACKEND + "/chat/auth");
+    console.log(res);
+    if (res.status != 200) return;
+
+    const auth_uuid = await res.text();
     ws = new WebSocket(
-      "ws://127.0.0.1:8080/chats/d9b49810-a1cb-440a-9e66-c293aa61d4d9"
+      `ws://${PUBLIC_URL_BACKEND}/chat/d9b49810-a1cb-440a-9e66-c293aa61d4d9?auth=${auth_uuid}`
     );
     ws.addEventListener("open", (msg) => {
       console.log("Connected to Chat");
@@ -42,6 +48,10 @@
       console.log(mensagem);
       if (mensagem.message_type === "TEXT") addMensagem(mensagem);
     });
+  }
+  let ws: WebSocket;
+  onMount(async () => {
+    setupWebSocket();
   });
 </script>
 
