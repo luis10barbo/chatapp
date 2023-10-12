@@ -1,19 +1,16 @@
 use std::thread;
 
-use actix::Addr;
 use actix_session::Session;
 use actix_web::{
     get,
-    web::{self, Data, Path, Payload, Query},
+    web::{self, Data, Path, Payload},
     HttpRequest, HttpResponse, Responder, Scope,
 };
 use actix_web_actors::ws;
 use serde::Deserialize;
 use uuid::Uuid;
 
-use crate::{
-    lobby::Lobby, routes::user_route::RespostaAdquirirIdSessao, socket::ChatWs, AppContext,
-};
+use crate::{routes::user_route::RespostaAdquirirIdSessao, socket::ChatWs, AppContext};
 
 use super::user_route::get_user_id;
 

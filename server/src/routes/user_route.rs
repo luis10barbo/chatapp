@@ -1,17 +1,13 @@
-use std::sync::MutexGuard;
-
-use actix_session::{Session, SessionGetError};
+use actix_session::Session;
 use actix_web::{
     get, post,
-    web::{Payload, Query},
+    web::Query,
     web::{self, Data},
-    HttpRequest, HttpResponse, Responder, Scope,
+    HttpResponse, Responder, Scope,
 };
 use serde::Deserialize;
 
-use crate::{db::user_db::UserTable, lobby::Lobby, socket::ChatWs, AppContext};
-
-use super::chat_route::connect_to_chat;
+use crate::{db::user_db::UserTable, AppContext};
 
 pub fn user_scope() -> Scope {
     web::scope("/user")
@@ -72,10 +68,12 @@ struct UserInfoQuery {
 }
 
 #[get("/info")]
-async fn user_info(app_ctx: Data<AppContext>, session: Session, query: Query<UserInfoQuery>) -> impl Responder {
-    let res = get_user_id(&session);
-    let RespostaAdquirirIdSessao::Id(user_id) = res else {
-        
+async fn user_info(
+    app_ctx: Data<AppContext>,
+    session: Session,
+    query: Query<UserInfoQuery>,
+) -> impl Responder {
+    let RespostaAdquirirIdSessao::Id(_) = get_user_id(&session) else {
         return HttpResponse::Unauthorized().body("Precisa estar logado para acessar informacao de outros usuarios");
     };
 
