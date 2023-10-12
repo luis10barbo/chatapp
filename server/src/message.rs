@@ -8,6 +8,7 @@ pub enum MessageType {
     TEXT,
     ID,
     INIT,
+    DISCONNECTED,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

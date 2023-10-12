@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 
 use actix::{
     prelude::{Message, Recipient},
-    Actor, Handler,
+    Actor, AsyncContext, Handler,
 };
 use uuid::Uuid;
 
@@ -140,7 +140,7 @@ impl Handler<Disconnect> for Lobby {
 impl Handler<Connect> for Lobby {
     type Result = ();
 
-    fn handle(&mut self, msg: Connect, _: &mut Self::Context) -> Self::Result {
+    fn handle(&mut self, msg: Connect, ctx: &mut Self::Context) -> Self::Result {
         println!(
             "conectando {} ao lobby {}, {:?}",
             msg.id,
@@ -175,6 +175,19 @@ impl Handler<Connect> for Lobby {
                 )
             });
 
+        if let Some(conn) = self.sessions.get(&msg.id) {
+            println!("Usuario {} disconectado", msg.id);
+            self.send_message(
+                SocketMessage {
+                    message_type: crate::message::MessageType::DISCONNECTED,
+                    message: "Logado de outra localizacao".into(),
+                    id: Some(msg.id),
+                    ..Default::default()
+                },
+                &msg.id,
+            );
+            ctx.cancel_future(ctx.handle());
+        }
         self.sessions.insert(msg.id, msg.addr);
         self.send_message(
             SocketMessage {
