@@ -12,24 +12,18 @@ use std::{
 
 use actix::{Actor, Addr};
 use actix_cors::Cors;
-use actix_session::{
-    config::PersistentSession, storage::CookieSessionStore, Session, SessionMiddleware,
-};
+use actix_session::{config::PersistentSession, storage::CookieSessionStore, SessionMiddleware};
 use actix_web::{
     cookie::{time::Duration, Key},
     get,
-    web::{Data, Path, Payload},
-    App, HttpRequest, HttpResponse, HttpServer, Responder,
+    web::Data,
+    App, HttpResponse, HttpServer, Responder,
 };
-use actix_web_actors::ws;
 use db::Database;
 use lobby::Lobby;
 use logger::setup_logger;
 use routes::{chat_route::chat_scope, user_route::user_scope};
-use serde::Deserialize;
 use uuid::Uuid;
-
-use crate::{routes::user_route::get_user_id, socket::ChatWs};
 
 pub struct AppContext {
     db: Arc<Mutex<Database>>,
@@ -79,7 +73,7 @@ async fn main() -> std::io::Result<()> {
             .service(user_scope())
             .service(chat_scope())
     })
-    .bind(("localhost", 8080))?
+    .bind(("192.168.0.46", 8080))?
     .run()
     .await
 }

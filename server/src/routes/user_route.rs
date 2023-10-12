@@ -1,7 +1,9 @@
+use std::sync::MutexGuard;
+
 use actix_session::{Session, SessionGetError};
 use actix_web::{
     get, post,
-    web::Payload,
+    web::{Payload, Query},
     web::{self, Data},
     HttpRequest, HttpResponse, Responder, Scope,
 };
@@ -15,8 +17,9 @@ pub fn user_scope() -> Scope {
     web::scope("/user")
         .service(create_user)
         .service(login_user)
-        .service(user_info)
+        .service(my_user_info)
         .service(rota_sair)
+        .service(user_info)
 }
 
 #[derive(Debug, Deserialize)]
@@ -63,8 +66,32 @@ async fn login_user(
     return HttpResponse::Unauthorized().body("Senha incorreta");
 }
 
-#[get("/")]
-async fn user_info(app_ctx: Data<AppContext>, session: Session) -> impl Responder {
+#[derive(Debug, Deserialize)]
+struct UserInfoQuery {
+    id: usize,
+}
+
+#[get("/info")]
+async fn user_info(app_ctx: Data<AppContext>, session: Session, query: Query<UserInfoQuery>) -> impl Responder {
+    let res = get_user_id(&session);
+    let RespostaAdquirirIdSessao::Id(user_id) = res else {
+        
+        return HttpResponse::Unauthorized().body("Precisa estar logado para acessar informacao de outros usuarios");
+    };
+
+    let Ok(db) = app_ctx.db.lock() else {
+        return HttpResponse::InternalServerError().body("Erro ao adquirir db");
+    };
+    println!("{:?}", query.id);
+
+    let Ok(user) = db.get_user(query.id) else {
+        return HttpResponse::NotFound().body("Usuario nao encontrado");
+    };
+    HttpResponse::Ok().json(user)
+}
+
+#[get("/me")]
+async fn my_user_info(app_ctx: Data<AppContext>, session: Session) -> impl Responder {
     let user_id = session.get::<usize>(USER_ID_KEY).unwrap();
     println!("{:?}", session.entries());
     if user_id.is_none() {

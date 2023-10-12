@@ -1,17 +1,40 @@
-<script lang="ts">
-  import "./style.css";
-  import ContainerChat from "./ContainerChat.svelte";
-  import { getJson, postJson, requestPerfil } from "../utils/requests";
-  import { onMount } from "svelte";
-  import { PUBLIC_URL_BACKEND } from "$env/static/public";
-
-  type Usuario = {
+<script context="module" lang="ts">
+  export type Usuario = {
     user_email?: string;
     user_id: number;
     user_name?: string;
     user_nick: string;
     user_status?: string;
   };
+  export let cachedUsers = new Map<Usuario["user_id"], Usuario>();
+
+  export async function requestUser(user_id: Usuario["user_id"]) {
+    const res = await getJson(
+      `${location.protocol}//${PUBLIC_URL_BACKEND}/user/info?id=${user_id}`
+    );
+    if (res.status !== 200) {
+      console.error("Error fetching user " + user_id);
+      return;
+    }
+
+    const user = JSON.parse(await res.text()) as Usuario;
+    cachedUsers.set(user_id, user);
+    return user;
+  }
+
+  export async function getUser(userId: Usuario["user_id"]) {
+    if (cachedUsers.has(userId)) return cachedUsers.get(userId);
+
+    return await requestUser(userId);
+  }
+</script>
+
+<script lang="ts">
+  import "./style.css";
+  import ContainerChat from "./ContainerChat.svelte";
+  import { getJson, postJson, requestPerfil } from "../utils/requests";
+  import { onMount } from "svelte";
+  import { PUBLIC_URL_BACKEND } from "$env/static/public";
 
   let usuario: Usuario | undefined = undefined;
   function redirecionarLogin() {
@@ -25,8 +48,10 @@
   async function getUsuario() {
     const res = await requestPerfil();
     if (res.status === 200) {
-      usuario = JSON.parse(await res.text());
-      console.log(usuario);
+      usuario = JSON.parse(await res.text()) as Usuario;
+      // if (!usuario) return redirecionarLogin();
+
+      cachedUsers.set(usuario.user_id, usuario);
       return;
     }
     redirecionarLogin();

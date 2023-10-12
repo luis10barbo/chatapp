@@ -4,9 +4,12 @@
   import CardMensagem from "./CardMensagem.svelte";
   import { getJson } from "../utils/requests";
   import { PUBLIC_URL_BACKEND } from "$env/static/public";
+  import { cachedUsers, getUser } from "./+page.svelte";
 
   export let meuId: number;
   export let idChat: string;
+  let chatHolder: HTMLDivElement;
+
   let mensagens: Mensagem[];
   $: mensagens = [];
 
@@ -17,16 +20,18 @@
     message: string;
     id: number;
   };
-  function addMensagem(mensagem: MensagemSocket) {
+  async function addMensagem(mensagem: MensagemSocket) {
+    const usuario = await getUser(mensagem.id);
     mensagens = [
       ...mensagens,
       {
         horario: "00:00",
         id: mensagem.id,
         mensagem: mensagem.message,
-        nome: "Teste",
+        usuario: usuario,
       },
     ];
+    chatHolder.scrollTop = chatHolder.scrollHeight;
   }
 
   function enviarMensagem() {
@@ -51,7 +56,6 @@
     ws.addEventListener("message", (msg) => {
       mensagens = [...mensagens];
       const mensagem: MensagemSocket = JSON.parse(msg.data);
-      console.log(mensagem);
       if (mensagem.message_type === "TEXT") addMensagem(mensagem);
     });
   }
@@ -72,7 +76,7 @@
       <span id="curr-chat-online-count">0</span> Online
     </p>
   </header>
-  <div id="curr-chat-messages-holder">
+  <div id="curr-chat-messages-holder" bind:this={chatHolder}>
     {#each mensagens as mensagem}
       <CardMensagem {mensagem} {meuId} />
     {/each}
