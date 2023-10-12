@@ -23,7 +23,7 @@ pub struct ChatWs {
 impl ChatWs {
     pub fn new(room: Uuid, lobby_addr: Addr<Lobby>, id: usize) -> ChatWs {
         ChatWs {
-            id: id,
+            id,
             lobby_addr,
             hb: Instant::now(),
             room,
@@ -53,13 +53,14 @@ impl Handler<WsMessage> for ChatWs {
 impl Actor for ChatWs {
     type Context = ws::WebsocketContext<Self>;
     fn started(&mut self, ctx: &mut Self::Context) {
+        println!("teste ->  {:?}", ctx.address());
         self.hb(ctx);
 
         let addr = ctx.address();
         self.lobby_addr
             .send(Connect {
                 addr: addr.recipient(),
-                lobby_id: self.room,
+                room_id: self.room,
                 id: self.id,
             })
             .into_actor(self)

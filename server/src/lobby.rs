@@ -28,7 +28,7 @@ pub struct WsMessage(pub String);
 #[rtype(result = "()")]
 pub struct Connect {
     pub addr: Recipient<WsMessage>,
-    pub lobby_id: Uuid,
+    pub room_id: Uuid,
     pub id: usize,
 }
 
@@ -138,12 +138,13 @@ impl Handler<Connect> for Lobby {
 
     fn handle(&mut self, msg: Connect, _: &mut Self::Context) -> Self::Result {
         self.rooms
-            .entry(msg.lobby_id)
+            .entry(msg.room_id)
             .or_insert_with(HashSet::new)
             .insert(msg.id);
 
+        println!("conectando {} ao lobby {}", msg.id, msg.room_id);
         self.rooms
-            .get(&msg.lobby_id)
+            .get(&msg.room_id)
             .unwrap()
             .iter()
             .filter(|conn_id| *conn_id.to_owned() != msg.id)

@@ -5,7 +5,10 @@ pub mod message;
 pub mod routes;
 pub mod socket;
 
-use std::sync::{Arc, Mutex};
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+};
 
 use actix::{Actor, Addr};
 use actix_cors::Cors;
@@ -22,14 +25,15 @@ use actix_web_actors::ws;
 use db::Database;
 use lobby::Lobby;
 use logger::setup_logger;
-use routes::user_route::user_scope;
+use routes::{chat_route::chat_scope, user_route::user_scope};
 use serde::Deserialize;
 use uuid::Uuid;
 
 use crate::{routes::user_route::adquirir_id_sessao, socket::ChatWs};
 
-struct AppContext {
+pub struct AppContext {
     db: Arc<Mutex<Database>>,
+    auth_tokens: Arc<Mutex<HashMap<Uuid, usize>>>,
 }
 
 #[actix_web::main]
@@ -39,8 +43,9 @@ async fn main() -> std::io::Result<()> {
     if let Err(err) = setup_logger() {
         panic!("Error setting up logger! {}", err);
     };
+    let db = Arc::new(Mutex::new(db::get().unwrap()));
     let chat_server = Lobby::default().start();
-
+    let auth_tokens = Arc::new(Mutex::new(HashMap::new()));
     HttpServer::new(move || {
         App::new()
             .wrap(
@@ -63,15 +68,16 @@ async fn main() -> std::io::Result<()> {
                     .max_age(3600),
             )
             .app_data(Data::new(AppContext {
-                db: Arc::new(Mutex::new(db::get().unwrap())),
+                db: db.clone(),
+                auth_tokens: auth_tokens.clone(),
             }))
             .app_data(Data::new(chat_server.clone()))
             .service(index)
-            .service(connect_to_chat)
             .service(get_uuid)
             .service(user_scope())
+            .service(chat_scope())
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind(("192.168.113.75", 8080))?
     .run()
     .await
 }
@@ -84,31 +90,4 @@ async fn index() -> impl Responder {
 #[get("/uuid")]
 pub async fn get_uuid() -> impl Responder {
     HttpResponse::Ok().body(Uuid::new_v4().to_string())
-}
-
-#[derive(Deserialize)]
-pub struct ConnectChatInfo {
-    pub uuid: Uuid,
-}
-
-#[get("/chats/{uuid}")]
-pub async fn connect_to_chat(
-    req: HttpRequest,
-    stream: Payload,
-    srv: Data<Addr<Lobby>>,
-    info: Path<ConnectChatInfo>,
-    session: Session,
-) -> Result<HttpResponse, actix_web::Error> {
-    let id_usuario = adquirir_id_sessao(&session);
-    println!("{:?}", session.entries());
-    println!("{:?}", req.cookies());
-    if id_usuario.is_err() {
-        return Ok(HttpResponse::NotFound().body("Sessao nao encontrada!"));
-    }
-    let id_usuario = id_usuario.unwrap();
-    if id_usuario.is_none() {
-        return Ok(HttpResponse::Unauthorized().body("Usuario nao logado"));
-    }
-    let ws = ChatWs::new(info.uuid, srv.get_ref().clone(), id_usuario.unwrap());
-    ws::start(ws, &req, stream)
 }
