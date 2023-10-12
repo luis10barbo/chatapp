@@ -42,14 +42,14 @@
   }
   async function deslogar() {
     await postJson("http://" + PUBLIC_URL_BACKEND + "/user/sair", {});
-    // window.location.reload();
+    window.location.reload();
     // redirecionarLogin();
   }
   async function getUsuario() {
     const res = await requestPerfil();
     if (res.status === 200) {
       usuario = JSON.parse(await res.text()) as Usuario;
-      // if (!usuario) return redirecionarLogin();
+      if (!usuario) return window.location.reload();
 
       cachedUsers.set(usuario.user_id, usuario);
       return;
