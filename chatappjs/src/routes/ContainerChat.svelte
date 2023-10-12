@@ -2,8 +2,8 @@
   import { onMount } from "svelte";
   import type { Mensagem } from "./CardMensagem.svelte";
   import CardMensagem from "./CardMensagem.svelte";
-  import { PUBLIC_URL_BACKEND } from "$env/static/public";
   import { getJson } from "../utils/requests";
+  import { PUBLIC_URL_BACKEND } from "$env/static/public";
 
   export let meuId: number;
   export let idChat: string;
@@ -34,8 +34,9 @@
     addMensagem({ id: meuId, message: mensagemEnviar, message_type: "TEXT" });
     mensagemEnviar = "";
   }
+
   let ws: WebSocket;
-  async function entrarChat() {
+  async function setupWebSocket() {
     // const res = await getJson(`http://${PUBLIC_URL_BACKEND}/chat/auth`);
     // if (res.status !== 200) {
     //   console.error("Erro ao authenticar chat");
@@ -54,8 +55,9 @@
       if (mensagem.message_type === "TEXT") addMensagem(mensagem);
     });
   }
+
   onMount(async () => {
-    entrarChat();
+    setupWebSocket();
   });
 </script>
 
