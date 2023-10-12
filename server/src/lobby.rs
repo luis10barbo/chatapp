@@ -51,9 +51,10 @@ pub struct ClientActorMessage {
 impl ClientActorMessage {
     pub fn new_message(&self, msg: String) -> SocketMessage {
         SocketMessage {
-            message_type: crate::message::MessageTypes::TEXT,
+            message_type: crate::message::MessageType::TEXT,
             message: msg,
             id: Some(self.id),
+            ..Default::default()
         }
     }
 }
@@ -93,9 +94,10 @@ impl Handler<ClientActorMessage> for Lobby {
             .for_each(|conn_id| {
                 self.send_message(
                     SocketMessage {
-                        message_type: crate::message::MessageTypes::TEXT,
+                        message_type: crate::message::MessageType::TEXT,
                         message: msg.msg.clone(),
                         id: Some(msg.id),
+                        ..Default::default()
                     },
                     conn_id,
                 )
@@ -116,9 +118,10 @@ impl Handler<Disconnect> for Lobby {
                 .for_each(|conn_id| {
                     self.send_message(
                         SocketMessage {
-                            message_type: crate::message::MessageTypes::LEAVE,
+                            message_type: crate::message::MessageType::LEAVE,
                             message: msg.id.to_string(),
-                            id: None,
+                            id: Some(msg.id),
+                            ..Default::default()
                         },
                         conn_id,
                     );
@@ -163,9 +166,10 @@ impl Handler<Connect> for Lobby {
             .for_each(|conn_id| {
                 self.send_message(
                     SocketMessage {
-                        message_type: crate::message::MessageTypes::JOIN,
+                        message_type: crate::message::MessageType::JOIN,
                         message: msg.id.to_string(),
-                        id: None,
+                        id: Some(msg.id),
+                        ..Default::default()
                     },
                     conn_id,
                 )
@@ -174,9 +178,10 @@ impl Handler<Connect> for Lobby {
         self.sessions.insert(msg.id, msg.addr);
         self.send_message(
             SocketMessage {
-                message_type: crate::message::MessageTypes::ID,
-                message: msg.id.to_string(),
+                message_type: crate::message::MessageType::INIT,
+                message: self.rooms.get(&msg.room_id).unwrap().len().to_string(),
                 id: Some(msg.id),
+                ..Default::default()
             },
             &msg.id,
         );

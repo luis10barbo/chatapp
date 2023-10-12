@@ -10,22 +10,22 @@
   export let idChat: string;
   let chatHolder: HTMLDivElement;
 
-  let mensagens: Mensagem[];
-  $: mensagens = [];
-
+  let mensagens: Mensagem[] = [];
+  let contagemOnline = 0;
   let mensagemEnviar = "";
 
   type MensagemSocket = {
     message_type: string;
     message: string;
     id: number;
+    date: string;
   };
   async function addMensagem(mensagem: MensagemSocket) {
     const usuario = await getUser(mensagem.id);
     mensagens = [
       ...mensagens,
       {
-        horario: "00:00",
+        horario: mensagem.date,
         id: mensagem.id,
         mensagem: mensagem.message,
         usuario: usuario,
@@ -36,7 +36,12 @@
 
   function enviarMensagem() {
     ws.send(mensagemEnviar);
-    addMensagem({ id: meuId, message: mensagemEnviar, message_type: "TEXT" });
+    addMensagem({
+      id: meuId,
+      message: mensagemEnviar,
+      message_type: "TEXT",
+      date: "00:00",
+    });
     mensagemEnviar = "";
   }
 
@@ -57,6 +62,10 @@
       mensagens = [...mensagens];
       const mensagem: MensagemSocket = JSON.parse(msg.data);
       if (mensagem.message_type === "TEXT") addMensagem(mensagem);
+      else if (mensagem.message_type === "JOIN") contagemOnline++;
+      else if (mensagem.message_type === "LEAVE") contagemOnline--;
+      else if (mensagem.message_type === "INIT")
+        contagemOnline = Number.parseInt(mensagem.message);
     });
   }
 
@@ -73,7 +82,9 @@
       <p class="chat-status" />
     </div>
     <p id="curr-chat-online-holder">
-      <span id="curr-chat-online-count">0</span> Online
+      {#if contagemOnline > 0}
+        <span id="curr-chat-online-count">{contagemOnline}</span> Online
+      {/if}
     </p>
   </header>
   <div id="curr-chat-messages-holder" bind:this={chatHolder}>

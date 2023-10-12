@@ -1,21 +1,32 @@
+use chrono::{DateTime, TimeZone, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
-pub enum MessageTypes {
+pub enum MessageType {
     JOIN,
     LEAVE,
     TEXT,
     ID,
+    INIT,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SocketMessage {
-    pub message_type: MessageTypes,
+    pub message_type: MessageType,
     pub message: String,
     pub id: Option<usize>,
+    pub date: String,
 }
 
 impl SocketMessage {
+    pub fn new(message: String, message_type: MessageType, id: Option<usize>) -> Self {
+        Self {
+            message,
+            message_type,
+            id,
+            ..Default::default()
+        }
+    }
     pub fn parse(message: &str) -> Self {
         let res = Self::parse_failable(message);
         if res.is_none() {
@@ -28,7 +39,7 @@ impl SocketMessage {
         if res.is_ok() {
             let object: SocketMessage = res.unwrap();
             return Some(Self {
-                message_type: MessageTypes::TEXT,
+                message_type: MessageType::TEXT,
                 message: object.message,
                 ..Default::default()
             });
@@ -37,12 +48,19 @@ impl SocketMessage {
     }
 }
 
+const DATE_FORMATTING: &str = "%Y-%m-%d %H:%M:%S";
+
+fn format_date(date_time: DateTime<Utc>) -> String {
+    format!("{}", date_time.format(DATE_FORMATTING))
+}
+
 impl Default for SocketMessage {
     fn default() -> Self {
         Self {
-            message_type: MessageTypes::TEXT,
+            message_type: MessageType::TEXT,
             message: "".into(),
             id: None,
+            date: format_date(Utc::now()),
         }
     }
 }
