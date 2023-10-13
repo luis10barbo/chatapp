@@ -53,9 +53,7 @@
     //   console.error("Erro ao authenticar chat");
     // }
     // const auth = await res.text();
-    ws = new WebSocket(
-      `ws://${PUBLIC_URL_BACKEND}/chat/d9b49810-a1cb-440a-9e66-c293aa61d4d9`
-    );
+    ws = new WebSocket(`ws://${PUBLIC_URL_BACKEND}/chat/connect/${idChat}`);
     ws.addEventListener("open", (msg) => {
       console.log("Connected to Chat");
     });
