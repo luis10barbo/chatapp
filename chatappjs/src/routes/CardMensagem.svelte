@@ -1,7 +1,7 @@
 <script context="module" lang="ts">
   export type Mensagem = {
     mensagem: string;
-    horario: string;
+    data: Date;
     id: number;
     usuario: Usuario | undefined;
   };
@@ -27,7 +27,9 @@
       <p class="msg-card-name">{user?.user_nick}</p>
     </header>
     <footer class="msg-card-footer">
-      <p class="msg-card-time">{mensagem.horario}</p>
+      <p class="msg-card-time">
+        {mensagem.data.getHours()}:{mensagem.data.getMinutes()}
+      </p>
       <p class="msg-card-status">
         <span class="msg-card-msg">{mensagem.mensagem}</span>
       </p>

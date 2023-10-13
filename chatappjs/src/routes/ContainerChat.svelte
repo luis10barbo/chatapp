@@ -25,7 +25,7 @@
     mensagens = [
       ...mensagens,
       {
-        horario: mensagem.date,
+        data: new Date(mensagem.date.replace(" ", "T") + "Z"),
         id: mensagem.id,
         mensagem: mensagem.message,
         usuario: usuario,
@@ -36,11 +36,12 @@
 
   function enviarMensagem() {
     ws.send(mensagemEnviar);
+    const dateNow = new Date().toISOString();
     addMensagem({
       id: meuId,
       message: mensagemEnviar,
       message_type: "TEXT",
-      date: "00:00",
+      date: dateNow.substring(0, dateNow.length - 1),
     });
     mensagemEnviar = "";
   }
@@ -66,6 +67,9 @@
       else if (mensagem.message_type === "LEAVE") contagemOnline--;
       else if (mensagem.message_type === "INIT")
         contagemOnline = Number.parseInt(mensagem.message);
+      else if (mensagem.message_type === "DISCONNECTED") {
+        // TODO: utilizar mensagem deslogada
+      }
     });
   }
 
