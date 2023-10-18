@@ -156,7 +156,12 @@ pub async fn connect_to_chat(
         };
     }
 
-    let ws = ChatWs::new(info.uuid, app_ctx.chat_server.clone(), user_id);
+    let ws = ChatWs::new(
+        info.uuid,
+        app_ctx.chat_server.clone(),
+        user_id,
+        app_ctx.db.clone(),
+    );
     ws::start(ws, &req, stream)
 }
 
