@@ -1,4 +1,5 @@
 pub mod chat_db;
+pub mod chat_message_db;
 pub mod session_db;
 pub mod user_db;
 
@@ -6,7 +7,8 @@ use rusqlite::{Connection, Error};
 
 use user_db::USER_TABLE_SQL;
 
-use self::chat_db::{CHAT_MESSAGES_TABLE_SQL, CHAT_TABLE_SQL, CHAT_USERS_TABLE_SQL};
+use self::chat_db::{CHAT_TABLE_SQL, CHAT_USERS_TABLE_SQL};
+use self::chat_message_db::CHAT_MESSAGES_TABLE_SQL;
 
 const DB_NAME: &str = "database.sqlite";
 pub fn get() -> Result<Database, rusqlite::Error> {
@@ -16,6 +18,7 @@ pub fn get() -> Result<Database, rusqlite::Error> {
     Ok(db)
 }
 
+#[derive(Debug)]
 pub struct Database {
     conn: Connection,
 }

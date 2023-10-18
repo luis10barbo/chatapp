@@ -1,3 +1,10 @@
+use crate::{
+    db::{
+        chat_message_db::{ChatMessage, ChatMessagesTable, InsertChatMessage},
+        Database,
+    },
+    message::{format_date, SocketMessage},
+};
 use std::{
     collections::{HashMap, HashSet},
     sync::{Arc, Mutex},
@@ -7,6 +14,7 @@ use actix::{
     prelude::{Message, Recipient},
     Actor, AsyncContext, Handler,
 };
+use chrono::Utc;
 use uuid::Uuid;
 
 type Socket = Recipient<WsMessage>;
@@ -44,7 +52,7 @@ pub struct Disconnect {
 }
 
 //client sends this to the lobby for the lobby to echo out.
-#[derive(Message)]
+#[derive(Message, Debug)]
 #[rtype(result = "()")]
 pub struct ClientActorMessage {
     pub id: i64,
@@ -96,7 +104,16 @@ impl Handler<ClientActorMessage> for Lobby {
     type Result = ();
 
     fn handle(&mut self, msg: ClientActorMessage, _: &mut Self::Context) -> Self::Result {
-        println!("Mensagem nova em lobby, grupos: {:?}", self.rooms.keys());
+        // println!("Mensagem nova em lobby, grupos: {:?}", self.rooms.keys());
+        let db = self.db.lock().unwrap();
+        let Ok(res) = db.insert_message(InsertChatMessage {
+            chat_id: msg.room_id.to_string(),
+            date_created: format_date(Utc::now()),
+            message: &msg.msg,
+            user_id: msg.id,
+        }) else {
+            panic!("Error sending message {:?}", msg)
+        };
         self.rooms
             .get(&msg.room_id)
             .unwrap()
