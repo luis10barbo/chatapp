@@ -33,9 +33,10 @@
       ...mensagens,
       {
         data: new Date(mensagem.date.replace(" ", "T") + "Z"),
-        id: mensagem.id,
+        idUsuario: mensagem.id,
         mensagem: mensagem.message,
         usuario: usuario,
+        id: "",
       },
     ];
     chatHolder.scrollTop = chatHolder.scrollHeight;

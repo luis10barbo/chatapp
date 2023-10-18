@@ -2,7 +2,8 @@
   export type Mensagem = {
     mensagem: string;
     data: Date;
-    id: number;
+    idUsuario: number;
+    id: string;
     usuario: Usuario | undefined;
   };
 </script>
@@ -11,17 +12,17 @@
   import { getUser, type Usuario } from "./+page.svelte";
 
   export let mensagem: Mensagem;
-  export let meuId: Mensagem["id"];
+  export let meuId: Mensagem["idUsuario"];
   let user: Usuario | undefined = undefined;
 
   async function adquirirUsuario() {
-    user = await getUser(mensagem.id);
+    user = await getUser(mensagem.idUsuario);
   }
   adquirirUsuario();
 </script>
 
 {#if user}
-  <div class={`msg-card ` + (meuId === mensagem.id ? " owned" : "")}>
+  <div class={`msg-card ` + (meuId === mensagem.idUsuario ? " owned" : "")}>
     <header class="msg-card-header">
       <p class="msg-card-name">{user?.user_nick}</p>
     </header>
