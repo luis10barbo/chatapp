@@ -88,9 +88,10 @@
         <button on:click={deslogar}>Sair</button>
       </footer>
     </section>
-
-    {#if $selectedChat}
-      <ContainerChat idChat={$selectedChat} meuId={usuario.user_id} />
-    {/if}
+    {#key $selectedChat}
+      {#if $selectedChat}
+        <ContainerChat idChat={$selectedChat} meuId={usuario.user_id} />
+      {/if}
+    {/key}
   {/if}
 </div>
