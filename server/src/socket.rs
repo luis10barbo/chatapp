@@ -1,4 +1,7 @@
-use std::time::{Duration, Instant};
+use std::{
+    sync::{Arc, Mutex},
+    time::{Duration, Instant},
+};
 
 use actix::{
     fut, prelude::ContextFutureSpawner, Actor, ActorContext, ActorFutureExt, Addr, AsyncContext,
@@ -7,7 +10,10 @@ use actix::{
 use actix_web_actors::ws;
 use uuid::Uuid;
 
-use crate::lobby::{ClientActorMessage, Connect, Disconnect, Lobby, WsMessage};
+use crate::{
+    db::Database,
+    lobby::{ClientActorMessage, Connect, Disconnect, Lobby, WsMessage},
+};
 
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
@@ -18,15 +24,17 @@ pub struct ChatWs {
     lobby_addr: Addr<Lobby>,
     hb: Instant,
     room: Uuid,
+    db: Arc<Mutex<Database>>,
 }
 
 impl ChatWs {
-    pub fn new(room: Uuid, lobby_addr: Addr<Lobby>, id: i64) -> ChatWs {
+    pub fn new(room: Uuid, lobby_addr: Addr<Lobby>, id: i64, db: Arc<Mutex<Database>>) -> ChatWs {
         ChatWs {
             id,
             lobby_addr,
             hb: Instant::now(),
             room,
+            db,
         }
     }
     fn hb(&self, ctx: &mut ws::WebsocketContext<Self>) {

@@ -47,7 +47,7 @@ async fn main() -> std::io::Result<()> {
         panic!("Error setting up logger! {}", err);
     };
     let db = Arc::new(Mutex::new(db::get().unwrap()));
-    let chat_server = Lobby::default().start();
+    let chat_server = Lobby::new(db.clone()).start();
     let auth_tokens = Arc::new(Mutex::new(HashMap::new()));
     HttpServer::new(move || {
         App::new()

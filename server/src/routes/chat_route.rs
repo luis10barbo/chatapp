@@ -1,7 +1,7 @@
 use actix_session::Session;
 use actix_web::{
     get, post,
-    web::{self, Data, Json, Path, Payload},
+    web::{self, Data, Json, Path, Payload, Query},
     HttpRequest, HttpResponse, Responder, Scope,
 };
 use actix_web_actors::ws;
@@ -9,7 +9,9 @@ use serde::Deserialize;
 use uuid::Uuid;
 
 use crate::{
-    db::chat_db::ChatTable, routes::user_route::RespostaAdquirirIdSessao, socket::ChatWs,
+    db::{chat_db::ChatTable, chat_message_db::ChatMessagesTable},
+    routes::user_route::RespostaAdquirirIdSessao,
+    socket::ChatWs,
     AppContext,
 };
 
@@ -21,6 +23,7 @@ pub fn chat_scope() -> Scope {
         .service(connect_to_chat)
         .service(create_chat_route)
         .service(get_chats_router)
+        .service(get_messages)
 }
 
 #[get("/auth")]
@@ -153,6 +156,35 @@ pub async fn connect_to_chat(
         };
     }
 
-    let ws = ChatWs::new(info.uuid, app_ctx.chat_server.clone(), user_id);
+    let ws = ChatWs::new(
+        info.uuid,
+        app_ctx.chat_server.clone(),
+        user_id,
+        app_ctx.db.clone(),
+    );
     ws::start(ws, &req, stream)
+}
+
+#[derive(Debug, Deserialize)]
+pub struct GetMessagesQuery {
+    offset: usize,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct GetMessagesPath {
+    uuid: Uuid,
+}
+
+#[get("/messages/{uuid}")]
+pub async fn get_messages(
+    app_ctx: Data<AppContext>,
+    query: Query<GetMessagesQuery>,
+    path: Path<GetMessagesPath>,
+) -> impl Responder {
+    let db = app_ctx.db.lock().unwrap();
+    let res = db.get_chat_messages(path.uuid.to_string().clone(), query.offset);
+    let Ok(messages) = res else {
+        return HttpResponse::InternalServerError().body("Undocumented error getting messages");
+    };
+    HttpResponse::Ok().json(messages)
 }
