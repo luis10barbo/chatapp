@@ -8,6 +8,8 @@
 
   export let meuId: number;
   export let idChat: string;
+  let alerta = "Você fez login em outra localização. Desconectado!";
+  let mostrarAlerta = false;
   let chatHolder: HTMLDivElement;
 
   let mensagens: Mensagem[] = [];
@@ -69,6 +71,7 @@
         contagemOnline = Number.parseInt(mensagem.message);
       else if (mensagem.message_type === "DISCONNECTED") {
         // TODO: utilizar mensagem deslogada
+        mostrarAlerta = true;
       }
     });
   }
@@ -79,6 +82,9 @@
 </script>
 
 <section id="curr-chat">
+  <div id="aviso-container" class={`${mostrarAlerta ? "" : "hidden"}`}>
+    <div id="aviso">{alerta}</div>
+  </div>
   <header id="curr-chat-header" class="section-header">
     <img id="img-curr-chat" />
     <div id="curr-chat-info">
