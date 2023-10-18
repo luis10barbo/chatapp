@@ -8,10 +8,13 @@
 
 <script lang="ts">
   import { PUBLIC_URL_BACKEND } from "$env/static/public";
-  import { getJson } from "../utils/requests";
+  import { getJson, postJson } from "../utils/requests";
   import { selectChat, selectedChat } from "./+page.svelte";
   import ChatCard from "./ChatCard.svelte";
+
+  let chatName = "";
   let chats: Chat[] | undefined = undefined;
+
   async function getCards() {
     const res = await getJson(
       location.protocol + "//" + PUBLIC_URL_BACKEND + "/chat/"
