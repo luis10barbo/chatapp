@@ -108,7 +108,7 @@ body {
 
 #aviso-container.hidden > * {
   /* opacity: 0; */
-  animation: popdown 250ms;
+  animation: popdown 250ms ;
 }
 
 #img-curr-chat {
