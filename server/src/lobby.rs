@@ -1,5 +1,7 @@
-use crate::message::SocketMessage;
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::{Arc, Mutex},
+};
 
 use actix::{
     prelude::{Message, Recipient},
@@ -12,6 +14,7 @@ type Socket = Recipient<WsMessage>;
 pub struct Lobby {
     sessions: HashMap<i64, Socket>,     //self id to self
     rooms: HashMap<Uuid, HashSet<i64>>, //room id  to list of users id
+    db: Arc<Mutex<Database>>,
 }
 
 impl Actor for Lobby {
@@ -60,6 +63,13 @@ impl ClientActorMessage {
 }
 
 impl Lobby {
+    pub fn new(db: Arc<Mutex<Database>>) -> Self {
+        Self {
+            db,
+            rooms: HashMap::new(),
+            sessions: HashMap::new(),
+        }
+    }
     fn send_message(&self, message: SocketMessage, target_id: &i64) {
         if let Some(scoket_recipient) = self.sessions.get(target_id) {
             let _ = scoket_recipient.do_send(WsMessage(serde_json::to_string(&message).unwrap()));
@@ -72,14 +82,15 @@ impl Lobby {
     }
 }
 
-impl Default for Lobby {
-    fn default() -> Self {
-        Self {
-            rooms: HashMap::new(),
-            sessions: HashMap::new(),
-        }
-    }
-}
+// impl Default for Lobby {
+//     fn default() -> Self {
+//         Self {
+//             rooms: HashMap::new(),
+//             sessions: HashMap::new(),
+
+//         }
+//     }
+// }
 
 impl Handler<ClientActorMessage> for Lobby {
     type Result = ();
