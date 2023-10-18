@@ -51,7 +51,7 @@ impl SocketMessage {
 
 const DATE_FORMATTING: &str = "%Y-%m-%d %H:%M:%S";
 
-fn format_date(date_time: DateTime<Utc>) -> String {
+pub fn format_date(date_time: DateTime<Utc>) -> String {
     format!("{}", date_time.format(DATE_FORMATTING))
 }
 
