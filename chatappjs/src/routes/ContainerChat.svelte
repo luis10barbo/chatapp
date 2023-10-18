@@ -1,3 +1,7 @@
+<script context="module" lang="ts">
+  let ws: WebSocket;
+</script>
+
 <script lang="ts">
   import { onMount } from "svelte";
   import type { Mensagem } from "./CardMensagem.svelte";
@@ -8,6 +12,7 @@
 
   export let meuId: number;
   export let idChat: string;
+  let loading = true;
   let alerta = "Você fez login em outra localização. Desconectado!";
   let mostrarAlerta = false;
   let chatHolder: HTMLDivElement;
@@ -48,17 +53,15 @@
     mensagemEnviar = "";
   }
 
-  let ws: WebSocket;
   async function setupWebSocket() {
     // const res = await getJson(`http://${PUBLIC_URL_BACKEND}/chat/auth`);
     // if (res.status !== 200) {
     //   console.error("Erro ao authenticar chat");
     // }
     // const auth = await res.text();
+    if (ws) ws.close();
+
     ws = new WebSocket(`ws://${PUBLIC_URL_BACKEND}/chat/connect/${idChat}`);
-    ws.addEventListener("open", (msg) => {
-      console.log("Connected to Chat");
-    });
     ws.addEventListener("message", (msg) => {
       mensagens = [...mensagens];
       const mensagem: MensagemSocket = JSON.parse(msg.data);
@@ -76,11 +79,14 @@
 
   onMount(async () => {
     setupWebSocket();
+    setTimeout(() => {
+      loading = false;
+    }, 100);
   });
 </script>
 
-<section id="curr-chat">
-  <div id="aviso-container" class={`${mostrarAlerta ? "" : "hidden"}`}>
+<section id="curr-chat" class={`${loading ? "notransition" : ""}`}>
+  <div id="aviso-container" class={` ${mostrarAlerta ? "" : "hidden"}`}>
     <div id="aviso">{alerta}</div>
   </div>
   <header id="curr-chat-header" class="section-header">
