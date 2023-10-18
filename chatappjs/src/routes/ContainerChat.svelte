@@ -9,6 +9,7 @@
   import { getJson } from "../utils/requests";
   import { PUBLIC_URL_BACKEND } from "$env/static/public";
   import { cachedUsers, getUser } from "./+page.svelte";
+  import { tick } from "svelte";
 
   export let meuId: number;
   export let idChat: string;
@@ -27,6 +28,14 @@
     id: number;
     date: string;
   };
+
+  type MensagemApi = {
+    id: string;
+    message: string;
+    date_created: string;
+    user_id: number;
+  };
+
   async function addMensagem(mensagem: MensagemSocket) {
     const usuario = await getUser(mensagem.id);
     mensagens = [
@@ -39,6 +48,11 @@
         id: "",
       },
     ];
+    await tick();
+    scrollToBottomMsgs();
+  }
+
+  function scrollToBottomMsgs() {
     chatHolder.scrollTop = chatHolder.scrollHeight;
   }
 
@@ -78,12 +92,42 @@
     });
   }
 
+  async function getMessages(offset: number) {
+    const res = await getJson(
+      `http://${PUBLIC_URL_BACKEND}/chat/messages/${idChat}?offset=${offset}`
+    );
+    if (res.status !== 200) {
+      return;
+    }
+    const resMessages: MensagemApi[] = JSON.parse(await res.text());
+    const messages_parsed = await parse_msgs(resMessages);
+    mensagens = [...messages_parsed, ...mensagens];
+    await tick();
+    scrollToBottomMsgs();
+  }
+
   onMount(async () => {
+    getMessages(0);
     setupWebSocket();
     setTimeout(() => {
       loading = false;
     }, 100);
   });
+
+  async function parse_msgs(messages: MensagemApi[]) {
+    const messages_parsed = await Promise.all(
+      messages.map(async (message) => {
+        return {
+          data: new Date(message.date_created.replace(" ", "T") + "Z"),
+          idUsuario: message.user_id,
+          mensagem: message.message,
+          usuario: await getUser(message.user_id),
+          id: message.id,
+        } as Mensagem;
+      })
+    );
+    return messages_parsed;
+  }
 </script>
 
 <section id="curr-chat" class={`${loading ? "notransition" : ""}`}>
