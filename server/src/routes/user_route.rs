@@ -34,7 +34,7 @@ async fn create_user(app_ctx: Data<AppContext>, body: web::Json<AuthUserBody>) -
         if let Some(sqlite_err) = err.sqlite_error() {
             if sqlite_err.code == ErrorCode::ConstraintViolation {
                 return HttpResponse::Conflict()
-                    .body(format!("Usuario {} já existe", body.usuario));
+                    .body(format!("Usuario \"{}\" já existe", body.usuario));
             }
         }
         return HttpResponse::InternalServerError().body(err.to_string());
