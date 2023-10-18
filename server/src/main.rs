@@ -8,7 +8,6 @@ pub mod socket;
 use std::{
     collections::HashMap,
     env,
-    error::Error,
     sync::{Arc, Mutex},
 };
 

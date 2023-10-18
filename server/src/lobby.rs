@@ -175,7 +175,7 @@ impl Handler<Connect> for Lobby {
                 )
             });
 
-        if let Some(conn) = self.sessions.get(&msg.id) {
+        if let Some(_) = self.sessions.get(&msg.id) {
             println!("Usuario {} disconectado", msg.id);
             self.send_message(
                 SocketMessage {

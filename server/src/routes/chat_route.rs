@@ -1,5 +1,3 @@
-use std::thread;
-
 use actix_session::Session;
 use actix_web::{
     get, post,
@@ -7,7 +5,6 @@ use actix_web::{
     HttpRequest, HttpResponse, Responder, Scope,
 };
 use actix_web_actors::ws;
-use rusqlite::ErrorCode;
 use serde::Deserialize;
 use uuid::Uuid;
 
