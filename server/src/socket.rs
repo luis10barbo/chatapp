@@ -14,14 +14,14 @@ const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 
 #[derive(Debug)]
 pub struct ChatWs {
-    id: usize,
+    id: i64,
     lobby_addr: Addr<Lobby>,
     hb: Instant,
     room: Uuid,
 }
 
 impl ChatWs {
-    pub fn new(room: Uuid, lobby_addr: Addr<Lobby>, id: usize) -> ChatWs {
+    pub fn new(room: Uuid, lobby_addr: Addr<Lobby>, id: i64) -> ChatWs {
         ChatWs {
             id,
             lobby_addr,

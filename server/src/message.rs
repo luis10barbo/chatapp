@@ -15,12 +15,12 @@ pub enum MessageType {
 pub struct SocketMessage {
     pub message_type: MessageType,
     pub message: String,
-    pub id: Option<usize>,
+    pub id: Option<i64>,
     pub date: String,
 }
 
 impl SocketMessage {
-    pub fn new(message: String, message_type: MessageType, id: Option<usize>) -> Self {
+    pub fn new(message: String, message_type: MessageType, id: Option<i64>) -> Self {
         Self {
             message,
             message_type,

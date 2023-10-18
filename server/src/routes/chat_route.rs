@@ -61,7 +61,7 @@ pub struct ConnectChatQuery {
 }
 
 pub enum AuthTokenResponse {
-    Ok(Option<usize>),
+    Ok(Option<i64>),
     Err(HttpResponse),
 }
 
@@ -71,7 +71,7 @@ pub fn get_auth_token(app_ctx: Data<AppContext>, uuid: Uuid) -> AuthTokenRespons
             return AuthTokenResponse::Err(HttpResponse::InternalServerError().body("Nao foi possivel adquirir auth_tokens"));
         };
         println!("antiga -> {:?}", auth_tokens.keys());
-        let auth_token: usize;
+        let auth_token: i64;
         {
             let Some(auth_token_local) = auth_tokens.get(&uuid).clone() else {
                 return AuthTokenResponse::Ok(None);

@@ -29,7 +29,7 @@ use uuid::Uuid;
 
 pub struct AppContext {
     db: Arc<Mutex<Database>>,
-    auth_tokens: Arc<Mutex<HashMap<Uuid, usize>>>,
+    auth_tokens: Arc<Mutex<HashMap<Uuid, i64>>>,
     chat_server: Addr<Lobby>,
 }
 

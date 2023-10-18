@@ -10,6 +10,27 @@ use serde::Deserialize;
 
 use crate::{db::user_db::UserTable, AppContext};
 
+pub trait UserSession {
+    fn insert_user_id(&self, user_id: i64) -> Result<(), HttpResponse>;
+    fn get_user_id(&self) -> Result<Option<i64>, HttpResponse>;
+}
+
+impl UserSession for Session {
+    fn insert_user_id(&self, user_id: i64) -> Result<(), HttpResponse> {
+        if let Err(err) = self.insert(USER_ID_KEY, user_id) {
+            return Err(HttpResponse::InternalServerError()
+                .body(format!("Erro ao salvar sessão: {}", err.to_string())));
+        };
+        Ok(())
+    }
+    fn get_user_id(&self) -> Result<Option<i64>, HttpResponse> {
+        let Ok(user_id) = self.get::<i64>(USER_ID_KEY) else {
+            return Err(HttpResponse::InternalServerError().body("Erro ao adquirir id do usuario de sessao"));
+        };
+        Ok(user_id)
+    }
+}
+
 pub fn user_scope() -> Scope {
     web::scope("/user")
         .service(create_user)
@@ -26,10 +47,14 @@ struct AuthUserBody {
 }
 
 #[post("/registrar")]
-async fn create_user(app_ctx: Data<AppContext>, body: web::Json<AuthUserBody>) -> impl Responder {
+async fn create_user(
+    app_ctx: Data<AppContext>,
+    body: web::Json<AuthUserBody>,
+    session: Session,
+) -> impl Responder {
     let db_ref = app_ctx.db.try_lock().unwrap();
     let res = db_ref.create_user(body.usuario.clone(), body.senha.clone());
-    if res.is_err() {
+    let Ok(user_id) = res else {
         let err = res.unwrap_err();
         if let Some(sqlite_err) = err.sqlite_error() {
             if sqlite_err.code == ErrorCode::ConstraintViolation {
@@ -38,7 +63,11 @@ async fn create_user(app_ctx: Data<AppContext>, body: web::Json<AuthUserBody>) -
             }
         }
         return HttpResponse::InternalServerError().body(err.to_string());
-    }
+    };
+
+    if let Err(err) = session.insert_user_id(user_id) {
+        return err;
+    };
     HttpResponse::Ok().body(format!("Usuario {} criado", res.unwrap()))
 }
 
@@ -52,15 +81,14 @@ async fn login_user(
 ) -> impl Responder {
     let db = app_ctx.db.lock().unwrap();
     let login_res = db.login_user(body.usuario.clone(), body.senha.clone());
-    if login_res.is_err() {
+    let Ok(user_id) = login_res else {
         return HttpResponse::NotFound().body("Usuario não encontrado");
-    }
-    let user_id = login_res.unwrap();
+    };
+
     if let Some(user_id) = user_id {
-        if let Err(err) = session.insert(USER_ID_KEY, user_id) {
-            return HttpResponse::InternalServerError()
-                .body(format!("Erro ao salvar sessão: {}", err.to_string()));
-        };
+        if let Err(err) = session.insert_user_id(user_id) {
+            return err;
+        }
 
         if let Ok(user) = db.get_user(user_id) {
             return HttpResponse::Ok().json(user);
@@ -72,7 +100,7 @@ async fn login_user(
 
 #[derive(Debug, Deserialize)]
 struct UserInfoQuery {
-    id: usize,
+    id: i64,
 }
 
 #[get("/info")]
@@ -98,7 +126,11 @@ async fn user_info(
 
 #[get("/me")]
 async fn my_user_info(app_ctx: Data<AppContext>, session: Session) -> impl Responder {
-    let user_id = session.get::<usize>(USER_ID_KEY).unwrap();
+    let user_id = session.get_user_id();
+    let Ok(user_id) = session.get_user_id() else {
+        return user_id.unwrap_err()
+    };
+    // let user_id = session.get::<usize>(USER_ID_KEY).unwrap();
     println!("{:?}", session.entries());
     if user_id.is_none() {
         return HttpResponse::Unauthorized().body("Usuario nao logado");
@@ -111,18 +143,16 @@ async fn my_user_info(app_ctx: Data<AppContext>, session: Session) -> impl Respo
 }
 
 pub enum RespostaAdquirirIdSessao {
-    Id(usize),
+    Id(i64),
     Erro(HttpResponse),
 }
 
 pub fn get_user_id(session: &Session) -> RespostaAdquirirIdSessao {
-    let res = session.get::<usize>(USER_ID_KEY);
-    if res.is_err() {
-        return RespostaAdquirirIdSessao::Erro(
-            HttpResponse::InternalServerError().body("Erro ao adquirir ID na sessao"),
-        );
-    }
-    let res = res.unwrap();
+    let res = session.get_user_id();
+    let Ok(res) = res else {
+        return RespostaAdquirirIdSessao::Erro(res.unwrap_err());
+    };
+
     if res.is_none() {
         return RespostaAdquirirIdSessao::Erro(
             HttpResponse::Unauthorized().body("Usuario nao logado"),
@@ -131,7 +161,7 @@ pub fn get_user_id(session: &Session) -> RespostaAdquirirIdSessao {
     RespostaAdquirirIdSessao::Id(res.unwrap())
 }
 
-pub fn is_logged_in(session: &Session) -> Result<usize, HttpResponse> {
+pub fn is_logged_in(session: &Session) -> Result<i64, HttpResponse> {
     let RespostaAdquirirIdSessao::Id(id) = get_user_id(session) else {
         return Err(HttpResponse::Unauthorized().body("E necessario estar autenticado para utilizar essa funcao"));
     };
