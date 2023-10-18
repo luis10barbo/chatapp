@@ -3,6 +3,7 @@
     chat_id: string;
     chat_name: string;
     chat_desc: string;
+    chat_type: "USER" | "GROUP";
   };
 </script>
 

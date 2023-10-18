@@ -16,10 +16,17 @@ pub const CHAT_USERS_TABLE_SQL: &str = "CREATE TABLE IF NOT EXISTS chat_users (
     user_id INTEGER NOT NULL
 );";
 #[derive(Debug, Serialize)]
+pub enum ChatTypes {
+    USER,
+    GROUP,
+}
+
+#[derive(Debug, Serialize)]
 pub struct Chat {
     chat_id: String,
     chat_name: String,
     chat_desc: String,
+    chat_type: ChatTypes,
 }
 pub trait ChatTable {
     fn create_chat(&self, nome: &str) -> Result<Uuid, rusqlite::Error>;
@@ -55,6 +62,7 @@ impl ChatTable for Database {
                 chat_id: row.get(0)?,
                 chat_name: row.get(1)?,
                 chat_desc: row.get(2)?,
+                chat_type: ChatTypes::GROUP,
             })
         })?;
         for row in rows {
@@ -71,6 +79,7 @@ impl ChatTable for Database {
                 chat_id: row.get(0)?,
                 chat_name: row.get(1)?,
                 chat_desc: row.get(2)?,
+                chat_type: ChatTypes::GROUP,
             })
         })?;
         Ok(res)
