@@ -5,6 +5,7 @@ use actix_web::{
     web::{self, Data},
     HttpResponse, Responder, Scope,
 };
+use rusqlite::ErrorCode;
 use serde::Deserialize;
 
 use crate::{db::user_db::UserTable, AppContext};
@@ -29,7 +30,14 @@ async fn create_user(app_ctx: Data<AppContext>, body: web::Json<AuthUserBody>) -
     let db_ref = app_ctx.db.try_lock().unwrap();
     let res = db_ref.create_user(body.usuario.clone(), body.senha.clone());
     if res.is_err() {
-        return HttpResponse::InternalServerError().body(res.unwrap_err().to_string());
+        let err = res.unwrap_err();
+        if let Some(sqlite_err) = err.sqlite_error() {
+            if sqlite_err.code == ErrorCode::ConstraintViolation {
+                return HttpResponse::Conflict()
+                    .body(format!("Usuario {} já existe", body.usuario));
+            }
+        }
+        return HttpResponse::InternalServerError().body(err.to_string());
     }
     HttpResponse::Ok().body(format!("Usuario {} criado", res.unwrap()))
 }

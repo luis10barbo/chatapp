@@ -44,7 +44,7 @@
       if (res.status === 200) {
         setarMensagem("Login bem sucedido! Redirecionando...");
         window.location.replace("/");
-      } else if (res.status === 401 || res.status == 404) {
+      } else if (res.status === 401 || res.status === 404) {
         setarErro("Falha ao logar: " + (await res.text()));
       }
     });
@@ -60,7 +60,7 @@
       if (res.status === 200) {
         setarMensagem("Registro bem sucedido! Redirecionando...");
         window.location.replace("/");
-      } else if (res.status === 404) {
+      } else if (res.status === 404 || res.status === 409) {
         setarErro("Falha ao registrar: " + (await res.text()));
       }
     });
