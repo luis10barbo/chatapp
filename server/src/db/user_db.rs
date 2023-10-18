@@ -34,9 +34,9 @@ pub trait UserTable {
         &self,
         nickname: String,
         password: String,
-    ) -> Result<Option<usize>, rusqlite::Error>;
+    ) -> Result<Option<i64>, rusqlite::Error>;
 
-    fn get_user(&self, id: usize) -> Result<User, rusqlite::Error>;
+    fn get_user(&self, id: i64) -> Result<User, rusqlite::Error>;
 }
 
 impl UserTable for Database {
@@ -59,9 +59,9 @@ impl UserTable for Database {
         &self,
         nickname: String,
         password: String,
-    ) -> Result<Option<usize>, rusqlite::Error> {
+    ) -> Result<Option<i64>, rusqlite::Error> {
         struct PasswordSelection {
-            id: usize,
+            id: i64,
             password_hash: String,
         }
 
@@ -84,7 +84,7 @@ impl UserTable for Database {
         Ok(Some(password_query.id))
     }
 
-    fn get_user(&self, id: usize) -> Result<User, rusqlite::Error> {
+    fn get_user(&self, id: i64) -> Result<User, rusqlite::Error> {
         let mut stmt = self.conn.prepare("SELECT user_id, user_nick, user_name, user_status, user_email FROM users WHERE user_id = ? LIMIT 1")?;
         let user: User = stmt.query_row(params![id], |row| {
             Ok(User {
