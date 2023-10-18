@@ -1,5 +1,6 @@
 <script context="module" lang="ts">
   let ws: WebSocket;
+  let infoChats: Set<Chat> = new Set();
 </script>
 
 <script lang="ts">
@@ -10,9 +11,10 @@
   import { PUBLIC_URL_BACKEND } from "$env/static/public";
   import { cachedUsers, getUser } from "./+page.svelte";
   import { tick } from "svelte";
+  import type { Chat } from "./ContainerChatSelector.svelte";
 
   export let meuId: number;
-  export let idChat: string;
+  export let chat: Chat;
   let loading = true;
   let alerta = "Você fez login em outra localização. Desconectado!";
   let mostrarAlerta = false;
@@ -76,7 +78,9 @@
     // const auth = await res.text();
     if (ws) ws.close();
 
-    ws = new WebSocket(`ws://${PUBLIC_URL_BACKEND}/chat/connect/${idChat}`);
+    ws = new WebSocket(
+      `ws://${PUBLIC_URL_BACKEND}/chat/connect/${chat.chat_id}`
+    );
     ws.addEventListener("message", (msg) => {
       mensagens = [...mensagens];
       const mensagem: MensagemSocket = JSON.parse(msg.data);
@@ -94,7 +98,7 @@
 
   async function getMessages(offset: number) {
     const res = await getJson(
-      `http://${PUBLIC_URL_BACKEND}/chat/messages/${idChat}?offset=${offset}`
+      `http://${PUBLIC_URL_BACKEND}/chat/messages/${chat.chat_id}?offset=${offset}`
     );
     if (res.status !== 200) {
       return;
@@ -137,7 +141,7 @@
   <header id="curr-chat-header" class="section-header">
     <img id="img-curr-chat" />
     <div id="curr-chat-info">
-      <p>Grupo Atual</p>
+      <p>{chat.chat_name}</p>
       <p class="chat-status" />
     </div>
     <p id="curr-chat-online-holder">

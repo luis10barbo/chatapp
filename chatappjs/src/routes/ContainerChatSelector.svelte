@@ -54,7 +54,7 @@
       <ChatCard
         {chat}
         click={() => {
-          selectChat(chat.chat_id);
+          selectChat(chat);
         }}
       />
     {/each}

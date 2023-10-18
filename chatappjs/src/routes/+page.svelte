@@ -7,10 +7,10 @@
     user_status?: string;
   };
   export let cachedUsers = new Map<Usuario["user_id"], Usuario>();
-  export let selectedChat: Writable<undefined | string> = writable(undefined);
+  export let selectedChat: Writable<undefined | Chat> = writable(undefined);
 
-  export async function selectChat(chatId: string) {
-    selectedChat.set(chatId);
+  export async function selectChat(chat: Chat) {
+    selectedChat.set(chat);
   }
 
   export async function requestUser(user_id: Usuario["user_id"]) {
@@ -40,7 +40,9 @@
   import { getJson, postJson, requestPerfil } from "../utils/requests";
   import { onMount } from "svelte";
   import { PUBLIC_URL_BACKEND } from "$env/static/public";
-  import ContainerChatSelector from "./ContainerChatSelector.svelte";
+  import ContainerChatSelector, {
+    type Chat,
+  } from "./ContainerChatSelector.svelte";
   import { writable, type Writable } from "svelte/store";
 
   let usuario: Usuario | undefined = undefined;
@@ -90,7 +92,7 @@
     </section>
     {#key $selectedChat}
       {#if $selectedChat}
-        <ContainerChat idChat={$selectedChat} meuId={usuario.user_id} />
+        <ContainerChat chat={$selectedChat} meuId={usuario.user_id} />
       {/if}
     {/key}
   {/if}
