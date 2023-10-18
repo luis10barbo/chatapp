@@ -16,7 +16,6 @@
 
   async function adquirirUsuario() {
     user = await getUser(mensagem.id);
-    console.log(user);
   }
   adquirirUsuario();
 </script>
