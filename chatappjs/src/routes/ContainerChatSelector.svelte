@@ -22,12 +22,28 @@
     chats = JSON.parse(await res.text()) as Chat[];
   }
   getCards();
+  async function createChat() {
+    // console.log(chatName);
+    await postJson(`${location.protocol}//${PUBLIC_URL_BACKEND}/chat/create`, {
+      nome: chatName,
+    });
+    chatName = "";
+  }
 </script>
 
 <section id="chats-holder">
   <div id="chat-search-holder">
     <input placeholder="Pesquisar uma conversa..." />
     <button>Pesquisar</button>
+  </div>
+
+  <div id="chat-create-holder">
+    <input placeholder="Nome do chat" bind:value={chatName} />
+    <button
+      on:click={() => {
+        createChat();
+      }}>Criar</button
+    >
   </div>
 
   {#if chats}
