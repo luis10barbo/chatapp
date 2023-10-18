@@ -95,12 +95,10 @@ async fn my_user_info(app_ctx: Data<AppContext>, session: Session) -> impl Respo
     if user_id.is_none() {
         return HttpResponse::Unauthorized().body("Usuario nao logado");
     }
-    let user = app_ctx
-        .db
-        .lock()
-        .unwrap()
-        .get_user(user_id.unwrap())
-        .unwrap();
+    let user = app_ctx.db.lock().unwrap().get_user(user_id.unwrap());
+    let Ok(user) = user else {
+        return HttpResponse::NotFound().body(user.unwrap_err().to_string());
+    };
     HttpResponse::Ok().json(user)
 }
 
@@ -123,6 +121,13 @@ pub fn get_user_id(session: &Session) -> RespostaAdquirirIdSessao {
         );
     }
     RespostaAdquirirIdSessao::Id(res.unwrap())
+}
+
+pub fn is_logged_in(session: &Session) -> Result<usize, HttpResponse> {
+    let RespostaAdquirirIdSessao::Id(id) = get_user_id(session) else {
+        return Err(HttpResponse::Unauthorized().body("E necessario estar autenticado para utilizar essa funcao"));
+    };
+    Ok(id)
 }
 
 #[post("/sair")]

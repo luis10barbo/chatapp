@@ -7,6 +7,8 @@ pub mod socket;
 
 use std::{
     collections::HashMap,
+    env,
+    error::Error,
     sync::{Arc, Mutex},
 };
 
@@ -35,6 +37,13 @@ pub struct AppContext {
 async fn main() -> std::io::Result<()> {
     // std::env::set_var("RUST_LOG", "debug");
     // env_logger::init();
+    if let Err(_) = dotenvy::dotenv() {
+        panic!("Error loading dotenv");
+    };
+    let Ok(url_env) = env::var("URL") else {
+        panic!("Variavel de url nao encontrada no env")
+    };
+
     if let Err(err) = setup_logger() {
         panic!("Error setting up logger! {}", err);
     };
@@ -73,7 +82,7 @@ async fn main() -> std::io::Result<()> {
             .service(user_scope())
             .service(chat_scope())
     })
-    .bind(("192.168.0.46", 8080))?
+    .bind((url_env, 8080))?
     .run()
     .await
 }

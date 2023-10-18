@@ -2,22 +2,28 @@ use std::thread;
 
 use actix_session::Session;
 use actix_web::{
-    get,
-    web::{self, Data, Path, Payload},
+    get, post,
+    web::{self, Data, Json, Path, Payload},
     HttpRequest, HttpResponse, Responder, Scope,
 };
 use actix_web_actors::ws;
+use rusqlite::ErrorCode;
 use serde::Deserialize;
 use uuid::Uuid;
 
-use crate::{routes::user_route::RespostaAdquirirIdSessao, socket::ChatWs, AppContext};
+use crate::{
+    db::chat_db::ChatTable, routes::user_route::RespostaAdquirirIdSessao, socket::ChatWs,
+    AppContext,
+};
 
-use super::user_route::get_user_id;
+use super::user_route::{get_user_id, is_logged_in};
 
 pub fn chat_scope() -> Scope {
     web::scope("/chat")
         // .service(chat_auth_route)
         .service(connect_to_chat)
+        .service(create_chat_route)
+        .service(get_chats_router)
 }
 
 #[get("/auth")]
@@ -78,7 +84,50 @@ pub fn get_auth_token(app_ctx: Data<AppContext>, uuid: Uuid) -> AuthTokenRespons
     }
 }
 
-#[get("/{uuid}")]
+#[derive(Debug, Deserialize)]
+pub struct CreateChatRoute {
+    pub nome: String,
+}
+
+#[get("/")]
+pub async fn get_chats_router(app_ctx: Data<AppContext>) -> impl Responder {
+    let Ok(db) = app_ctx.db.lock() else {
+        return HttpResponse::InternalServerError().body("Erro adquirindo db");
+    };
+    let Ok(chats) = db.get_chats() else {
+        return HttpResponse::InternalServerError().body("Erro adquirindo chats");
+    };
+    HttpResponse::Ok().json(chats)
+}
+
+#[post("/create")]
+pub async fn create_chat_route(
+    session: Session,
+    app_ctx: Data<AppContext>,
+    body: Json<CreateChatRoute>,
+) -> impl Responder {
+    if let Err(err) = is_logged_in(&session) {
+        return err;
+    };
+    let Ok(db) = app_ctx.db.lock() else {
+        return HttpResponse::InternalServerError().body("Error fetching db from context");
+    };
+
+    let res = db.create_chat(&body.nome);
+    let Ok(chat_id) = res else {
+        log::error!("Error creating chat, {:?}", res.unwrap_err());
+        return HttpResponse::InternalServerError().body("Erro ao criar grupo de chat.")
+    };
+
+    let chat = db.get_chat(chat_id);
+    let Ok(chat) = chat else {
+        let err = chat.unwrap_err();
+        return HttpResponse::InternalServerError().body(err.to_string())
+    };
+    HttpResponse::Ok().json(chat)
+}
+
+#[get("/connect/{uuid}")]
 pub async fn connect_to_chat(
     req: HttpRequest,
     stream: Payload,
@@ -87,27 +136,6 @@ pub async fn connect_to_chat(
     session: Session,
     app_ctx: Data<AppContext>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    {
-        println!(
-            "route -> {:?}, session -> {:?}, authid -> {:?}, thread -> {:?}",
-            app_ctx.auth_tokens.lock().unwrap().keys(),
-            session.entries(),
-            -1,
-            thread::current().id()
-        );
-    }
-    // let res = get_auth_token(app_ctx, query.auth);
-
-    // let AuthTokenResponse::Ok(user_id) = res else {
-    //     let AuthTokenResponse::Err(error) = res else {
-    //         todo!()
-    //     };
-    //     return Ok(error);
-    // };
-
-    // let Some(user_id) = user_id else {
-    //     return Ok(HttpResponse::Unauthorized().body("Not authorized..."));
-    // };
     let res = get_user_id(&session);
     let RespostaAdquirirIdSessao::Id(user_id) = res else {
         let RespostaAdquirirIdSessao::Erro(err) =  res else {
@@ -115,6 +143,18 @@ pub async fn connect_to_chat(
         };
         return Ok(err);
     };
+
+    {
+        let Ok(db) = app_ctx.db.lock() else {
+            return Ok(HttpResponse::InternalServerError().body("Erro adquirindo db do contexto"));
+        };
+
+        if db.get_chat(info.uuid).is_err() {
+            return Ok(
+                HttpResponse::BadRequest().body(format!("Chat {} nao encontrado", info.uuid))
+            );
+        };
+    }
 
     let ws = ChatWs::new(info.uuid, app_ctx.chat_server.clone(), user_id);
     ws::start(ws, &req, stream)

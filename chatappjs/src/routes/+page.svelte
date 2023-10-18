@@ -7,6 +7,11 @@
     user_status?: string;
   };
   export let cachedUsers = new Map<Usuario["user_id"], Usuario>();
+  export let selectedChat: Writable<undefined | string> = writable(undefined);
+
+  export async function selectChat(chatId: string) {
+    selectedChat.set(chatId);
+  }
 
   export async function requestUser(user_id: Usuario["user_id"]) {
     const res = await getJson(
@@ -35,6 +40,8 @@
   import { getJson, postJson, requestPerfil } from "../utils/requests";
   import { onMount } from "svelte";
   import { PUBLIC_URL_BACKEND } from "$env/static/public";
+  import ContainerChatSelector from "./ContainerChatSelector.svelte";
+  import { writable, type Writable } from "svelte/store";
 
   let usuario: Usuario | undefined = undefined;
   function redirecionarLogin() {
@@ -74,33 +81,17 @@
       <header id="chats-header" class="section-header">
         <p>Conversas</p>
       </header>
-      <section id="chats-holder">
-        <div id="chat-search-holder">
-          <input placeholder="Pesquisar uma conversa..." />
-          <button>Pesquisar</button>
-        </div>
-        <button class="chat-card">
-          <header class="chat-card-header">
-            <p class="chat-card-name">Titulo</p>
-          </header>
-          <footer class="chat-card-footer">
-            <p class="chat-card-time">10:45</p>
-            <p class="chat-card-status">
-              <span class="chat-card-status-name">Luis</span>
-              <span class="chat-card-status-msg">teste teste</span>
-            </p>
-          </footer>
-        </button>
-      </section>
+      <ContainerChatSelector />
       <footer id="chats-footer" class="section-footer">
         <button>Contatos</button>
         <button>Perfil</button>
         <button on:click={deslogar}>Sair</button>
       </footer>
     </section>
-    <ContainerChat
-      idChat="d9b49810-a1cb-440a-9e66-c293aa61d4d9"
-      meuId={usuario.user_id}
-    />
+    {#key $selectedChat}
+      {#if $selectedChat}
+        <ContainerChat idChat={$selectedChat} meuId={usuario.user_id} />
+      {/if}
+    {/key}
   {/if}
 </div>
