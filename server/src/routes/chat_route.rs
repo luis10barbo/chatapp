@@ -31,7 +31,6 @@ pub fn chat_scope() -> Scope {
 
 #[get("/auth")]
 async fn chat_auth_route(session: Session, app_ctx: Data<AppContext>) -> impl Responder {
-    // println!("auth thread -> {:?}", thread::current().id());
     let res = get_user_id(&session);
     let RespostaAdquirirIdSessao::Id(id) = res else {
         let RespostaAdquirirIdSessao::Erro(erro) = res else {
@@ -47,8 +46,6 @@ async fn chat_auth_route(session: Session, app_ctx: Data<AppContext>) -> impl Re
             return HttpResponse::InternalServerError().body("");
         };
         auth_tokens.insert(uuid, id);
-        // println!("setting -> {:?}", auth_tokens.keys());
-        // println!("chat auth tokens -> {:?}", auth_tokens.keys());
     }
     HttpResponse::Ok().body(uuid.to_string())
 }
@@ -73,7 +70,7 @@ pub fn get_auth_token(app_ctx: Data<AppContext>, uuid: Uuid) -> AuthTokenRespons
         let Ok(mut auth_tokens) = app_ctx.auth_tokens.lock() else {
             return AuthTokenResponse::Err(HttpResponse::InternalServerError().body("Nao foi possivel adquirir auth_tokens"));
         };
-        println!("antiga -> {:?}", auth_tokens.keys());
+
         let auth_token: i64;
         {
             let Some(auth_token_local) = auth_tokens.get(&uuid).clone() else {
@@ -82,7 +79,7 @@ pub fn get_auth_token(app_ctx: Data<AppContext>, uuid: Uuid) -> AuthTokenRespons
             auth_token = *auth_token_local;
         }
         (*auth_tokens).remove(&uuid);
-        println!("nova -> {:?}", auth_tokens.keys());
+
         AuthTokenResponse::Ok(Some(auth_token.clone()))
     }
 }

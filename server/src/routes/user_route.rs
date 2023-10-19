@@ -116,7 +116,6 @@ async fn user_info(
     let Ok(db) = app_ctx.db.lock() else {
         return HttpResponse::InternalServerError().body("Erro ao adquirir db");
     };
-    println!("{:?}", query.id);
 
     let Ok(user) = db.get_user(query.id) else {
         return HttpResponse::NotFound().body("Usuario nao encontrado");
@@ -130,8 +129,7 @@ async fn my_user_info(app_ctx: Data<AppContext>, session: Session) -> impl Respo
     let Ok(user_id) = session.get_user_id() else {
         return user_id.unwrap_err()
     };
-    // let user_id = session.get::<usize>(USER_ID_KEY).unwrap();
-    println!("{:?}", session.entries());
+
     if user_id.is_none() {
         return HttpResponse::Unauthorized().body("Usuario nao logado");
     }
