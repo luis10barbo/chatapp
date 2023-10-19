@@ -51,6 +51,7 @@
       },
     ];
     await tick();
+    await tick();
     scrollToBottomMsgs();
   }
 
@@ -106,6 +107,7 @@
     const resMessages: MensagemApi[] = JSON.parse(await res.text());
     const messages_parsed = await parse_msgs(resMessages);
     mensagens = [...messages_parsed, ...mensagens];
+    await tick();
     await tick();
     scrollToBottomMsgs();
   }
