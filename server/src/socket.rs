@@ -23,12 +23,12 @@ pub struct ChatWs {
     id: i64,
     lobby_addr: Addr<Lobby>,
     hb: Instant,
-    room: Uuid,
+    room: String,
     db: Arc<Mutex<Database>>,
 }
 
 impl ChatWs {
-    pub fn new(room: Uuid, lobby_addr: Addr<Lobby>, id: i64, db: Arc<Mutex<Database>>) -> ChatWs {
+    pub fn new(room: String, lobby_addr: Addr<Lobby>, id: i64, db: Arc<Mutex<Database>>) -> ChatWs {
         ChatWs {
             id,
             lobby_addr,
@@ -68,7 +68,7 @@ impl Actor for ChatWs {
         self.lobby_addr
             .send(Connect {
                 addr: addr.recipient(),
-                room_id: self.room,
+                room_id: self.room.clone(),
                 id: self.id,
             })
             .into_actor(self)
@@ -84,7 +84,7 @@ impl Actor for ChatWs {
     fn stopping(&mut self, _: &mut Self::Context) -> Running {
         self.lobby_addr.do_send(Disconnect {
             id: self.id,
-            room_id: self.room,
+            room_id: self.room.clone(),
         });
         Running::Stop
     }
@@ -112,7 +112,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for ChatWs {
             Ok(ws::Message::Text(s)) => self.lobby_addr.do_send(ClientActorMessage {
                 id: self.id,
                 msg: s.to_string(),
-                room_id: self.room,
+                room_id: self.room.clone(),
             }),
             Err(e) => panic!("{}", e),
         }

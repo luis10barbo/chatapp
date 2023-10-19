@@ -1,5 +1,5 @@
 use rusqlite::params;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::Database;
@@ -15,7 +15,7 @@ pub const CHAT_USERS_TABLE_SQL: &str = "CREATE TABLE IF NOT EXISTS chat_users (
     chat_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL
 );";
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub enum ChatTypes {
     USER,
     GROUP,
@@ -29,10 +29,10 @@ pub struct Chat {
     chat_type: ChatTypes,
 }
 pub trait ChatTable {
-    fn create_chat(&self, nome: &str) -> Result<Uuid, rusqlite::Error>;
+    fn create_chat(&self, nome: &str) -> Result<String, rusqlite::Error>;
     fn send_chat_message(&self, msg: ChatMessage) -> Result<String, rusqlite::Error>;
     fn get_chats(&self) -> Result<Vec<Chat>, rusqlite::Error>;
-    fn get_chat(&self, chat_id: Uuid) -> Result<Chat, rusqlite::Error>;
+    fn get_chat(&self, chat_id: &str, t: ChatTypes) -> Result<Chat, rusqlite::Error>;
 }
 
 pub struct ChatMessage {
@@ -44,13 +44,13 @@ pub struct ChatMessage {
 }
 
 impl ChatTable for Database {
-    fn create_chat(&self, nome: &str) -> Result<Uuid, rusqlite::Error> {
+    fn create_chat(&self, nome: &str) -> Result<String, rusqlite::Error> {
         let uuid = Uuid::new_v4();
         let mut stmt = self
             .conn
             .prepare("INSERT INTO chats (chat_id, chat_name) VALUES (?, ?)")?;
         stmt.execute(params![uuid.to_string(), nome])?;
-        Ok(uuid)
+        Ok(uuid.to_string())
     }
     fn get_chats(&self) -> Result<Vec<Chat>, rusqlite::Error> {
         let mut chats: Vec<Chat> = Vec::new();
@@ -70,7 +70,7 @@ impl ChatTable for Database {
         }
         Ok(chats)
     }
-    fn get_chat(&self, chat_id: Uuid) -> Result<Chat, rusqlite::Error> {
+    fn get_chat(&self, chat_id: &str, t: ChatTypes) -> Result<Chat, rusqlite::Error> {
         let mut stmt = self
             .conn
             .prepare("SELECT chat_id, chat_name, chat_desc FROM chats WHERE chat_id = ? LIMIT 1")?;

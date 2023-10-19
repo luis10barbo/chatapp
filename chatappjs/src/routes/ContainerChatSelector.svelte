@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
   export type Chat = {
-    chat_id: string;
+    chat_id: string | number;
     chat_name: string;
     chat_desc: string;
     chat_type: "USER" | "GROUP";

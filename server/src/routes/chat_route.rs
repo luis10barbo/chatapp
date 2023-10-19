@@ -9,7 +9,10 @@ use serde::Deserialize;
 use uuid::Uuid;
 
 use crate::{
-    db::{chat_db::ChatTable, chat_message_db::ChatMessagesTable},
+    db::{
+        chat_db::{ChatTable, ChatTypes},
+        chat_message_db::ChatMessagesTable,
+    },
     routes::user_route::RespostaAdquirirIdSessao,
     socket::ChatWs,
     AppContext,
@@ -52,7 +55,7 @@ async fn chat_auth_route(session: Session, app_ctx: Data<AppContext>) -> impl Re
 
 #[derive(Deserialize)]
 pub struct ConnectChatInfo {
-    pub uuid: Uuid,
+    pub uuid: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -119,12 +122,17 @@ pub async fn create_chat_route(
         return HttpResponse::InternalServerError().body("Erro ao criar grupo de chat.")
     };
 
-    let chat = db.get_chat(chat_id);
+    let chat = db.get_chat(&chat_id, ChatTypes::GROUP);
     let Ok(chat) = chat else {
         let err = chat.unwrap_err();
         return HttpResponse::InternalServerError().body(err.to_string())
     };
     HttpResponse::Ok().json(chat)
+}
+
+#[derive(Debug, Deserialize)]
+pub struct QueryConnectChat {
+    pub t: ChatTypes,
 }
 
 #[get("/connect/{uuid}")]
@@ -135,6 +143,7 @@ pub async fn connect_to_chat(
     info: Path<ConnectChatInfo>,
     session: Session,
     app_ctx: Data<AppContext>,
+    query: Query<QueryConnectChat>,
 ) -> Result<HttpResponse, actix_web::Error> {
     let res = get_user_id(&session);
     let RespostaAdquirirIdSessao::Id(user_id) = res else {
@@ -149,15 +158,15 @@ pub async fn connect_to_chat(
             return Ok(HttpResponse::InternalServerError().body("Erro adquirindo db do contexto"));
         };
 
-        if db.get_chat(info.uuid).is_err() {
+        if db.get_chat(&info.uuid, query.t).is_err() {
             return Ok(
-                HttpResponse::BadRequest().body(format!("Chat {} nao encontrado", info.uuid))
+                HttpResponse::BadRequest().body(format!("Chat {} nao encontrado", &info.uuid))
             );
         };
     }
 
     let ws = ChatWs::new(
-        info.uuid,
+        info.uuid.clone(),
         app_ctx.chat_server.clone(),
         user_id,
         app_ctx.db.clone(),

@@ -236,6 +236,16 @@ button {
   cursor: pointer;
   background-color: var(--cor-secundaria);
 }
+.text-button {
+  border-radius: 0;
+  padding: 0;
+  border: none;
+  background-color: transparent;
+}
+.text-button:hover {
+  color:rgb(84, 105, 199);
+  background-color: transparent;
+}
 
 button:hover {
   background-color: var(--cor-secundaria-high);

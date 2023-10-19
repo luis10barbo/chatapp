@@ -20,8 +20,8 @@ use uuid::Uuid;
 type Socket = Recipient<WsMessage>;
 
 pub struct Lobby {
-    sessions: HashMap<i64, Socket>,     //self id to self
-    rooms: HashMap<Uuid, HashSet<i64>>, //room id  to list of users id
+    sessions: HashMap<i64, Socket>,       //self id to self
+    rooms: HashMap<String, HashSet<i64>>, //room id  to list of users id
     db: Arc<Mutex<Database>>,
 }
 
@@ -39,7 +39,7 @@ pub struct WsMessage(pub String);
 #[rtype(result = "()")]
 pub struct Connect {
     pub addr: Recipient<WsMessage>,
-    pub room_id: Uuid,
+    pub room_id: String,
     pub id: i64,
 }
 
@@ -47,7 +47,7 @@ pub struct Connect {
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct Disconnect {
-    pub room_id: Uuid,
+    pub room_id: String,
     pub id: i64,
 }
 
@@ -57,7 +57,7 @@ pub struct Disconnect {
 pub struct ClientActorMessage {
     pub id: i64,
     pub msg: String,
-    pub room_id: Uuid,
+    pub room_id: String,
 }
 impl ClientActorMessage {
     pub fn new_message(&self, msg: String) -> SocketMessage {
@@ -182,7 +182,7 @@ impl Handler<Connect> for Lobby {
             );
         }
         self.rooms
-            .entry(msg.room_id)
+            .entry(msg.room_id.clone())
             .or_insert_with(HashSet::new)
             .insert(msg.id);
 
