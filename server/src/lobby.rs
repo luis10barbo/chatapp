@@ -12,7 +12,7 @@ use std::{
 
 use actix::{
     prelude::{Message, Recipient},
-    Actor, AsyncContext, Handler,
+    Actor, ActorContext, AsyncContext, Handler,
 };
 use chrono::Utc;
 use uuid::Uuid;
@@ -84,7 +84,8 @@ impl Lobby {
             return;
         }
         println!(
-            "Attempting to send message but couldn't find user {}",
+            "Attempting to send {:?} but couldn't find user {}",
+            message,
             target_id.to_string()
         );
     }
@@ -136,11 +137,15 @@ impl Handler<Disconnect> for Lobby {
     type Result = ();
 
     fn handle(&mut self, msg: Disconnect, _: &mut Self::Context) -> Self::Result {
+        println!("Disconnecting user");
         if self.sessions.remove(&msg.id).is_some() {
-            self.rooms
-                .get(&msg.room_id)
-                .unwrap()
-                .iter()
+            let Some(room) =  self.rooms.get(&msg.room_id) else {
+                    println!("Could not find lobby {}", &msg.room_id);
+                    return ();
+            };
+            println!("Disconnecting");
+
+            room.iter()
                 .filter(|conn_id| *conn_id.to_owned() != msg.id)
                 .for_each(|conn_id| {
                     self.send_message(
@@ -178,8 +183,24 @@ impl Handler<Connect> for Lobby {
             .get(&msg.room_id)
             .unwrap()
             .iter()
-            .filter(|conn_id| *conn_id.to_owned() != msg.id)
+            // .filter(|conn_id| *conn_id.to_owned() != msg.id)
             .for_each(|conn_id| {
+                println!("curr conn: {}, msgid: {}", conn_id, &msg.id);
+                if conn_id.to_owned() == msg.id {
+                    self.sessions.keys();
+                    // self.send_message(
+                    //     SocketMessage {
+                    //         message_type: crate::message::MessageType::DISCONNECTED,
+                    //         message: "Logado de outra localizacao".into(),
+                    //         id: Some(msg.id),
+                    //         ..Default::default()
+                    //     },
+                    //     &msg.id,
+                    // );
+                    // ctx.cancel_future(ctx.handle());
+                    return;
+                }
+
                 self.send_message(
                     SocketMessage {
                         message_type: crate::message::MessageType::JOIN,
@@ -191,20 +212,11 @@ impl Handler<Connect> for Lobby {
                 )
             });
 
-        if let Some(_) = self.sessions.get(&msg.id) {
-            println!("Usuario {} disconectado", msg.id);
-            self.send_message(
-                SocketMessage {
-                    message_type: crate::message::MessageType::DISCONNECTED,
-                    message: "Logado de outra localizacao".into(),
-                    id: Some(msg.id),
-                    ..Default::default()
-                },
-                &msg.id,
-            );
-            ctx.cancel_future(ctx.handle());
-        }
-        self.sessions.insert(msg.id, msg.addr);
+        if let Some(old_session) = self.sessions.insert(msg.id, msg.addr) {
+            // old_session.to_owned().send()
+            ctx.stop();
+        };
+        println!("{:?}", self.sessions.keys());
         self.send_message(
             SocketMessage {
                 message_type: crate::message::MessageType::INIT,

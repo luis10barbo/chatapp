@@ -83,8 +83,8 @@
       `ws://${PUBLIC_URL_BACKEND}/chat/connect/${chat.chat_id}?t=GROUP`
     );
     ws.addEventListener("message", (msg) => {
-      mensagens = [...mensagens];
       const mensagem: MensagemSocket = JSON.parse(msg.data);
+      console.log(mensagem);
       if (mensagem.message_type === "TEXT") addMensagem(mensagem);
       else if (mensagem.message_type === "JOIN") contagemOnline++;
       else if (mensagem.message_type === "LEAVE") contagemOnline--;
@@ -94,6 +94,10 @@
         // TODO: utilizar mensagem deslogada
         mostrarAlerta = true;
       }
+    });
+    ws.addEventListener("close", () => {
+      console.log("desconectado");
+      mostrarAlerta = true;
     });
   }
 

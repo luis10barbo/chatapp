@@ -67,7 +67,7 @@ impl ChatMessagesTable for Database {
             .conn
             .prepare("SELECT chat_message_id, user_id, message, date_created FROM chat_messages WHERE chat_id = ? ORDER BY datetime(date_created) DESC LIMIT 10 OFFSET ?")?;
 
-        let query = stmt.query_map(params![chat_id, offset * 10], |row| {
+        let query = stmt.query_map(params![chat_id, offset], |row| {
             Ok(ChatMessage {
                 id: row.get(0)?,
                 user_id: row.get(1)?,
