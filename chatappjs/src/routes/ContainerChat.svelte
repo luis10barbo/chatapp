@@ -80,7 +80,7 @@
     if (ws) ws.close();
 
     ws = new WebSocket(
-      `ws://${PUBLIC_URL_BACKEND}/chat/connect/${chat.chat_id}`
+      `ws://${PUBLIC_URL_BACKEND}/chat/connect/${chat.chat_id}?t=GROUP`
     );
     ws.addEventListener("message", (msg) => {
       mensagens = [...mensagens];
