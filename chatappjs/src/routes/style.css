@@ -8,9 +8,9 @@
   --smaller-padding: 0.3rem;
 
   --input-border-color: #dadada;
-  --cor-confirmar: #d2ffc7;
-  --cor-confirmar-high: #b3ff9f;
-  --cor-em-confirmar: #0e4800;
+  --cor-confirmar: #c6ffd5;
+  --cor-confirmar-high: #a0e4b2;
+  --cor-em-confirmar: #0c4000;
 
   --cor-secundaria: #eaeaea;
   --cor-secundaria-high: #c9c9c9;
@@ -65,7 +65,9 @@ body {
   display: flex;
   flex-direction: column;
   position: relative;
-  padding:var(--small-padding);
+  padding: var(--small-padding);
+  overflow: hidden;
+  min-width: fit-content;
 }
 #aviso-container {
   display: flex;
@@ -163,9 +165,9 @@ body {
 }
 
 #chats-holder {
-  display:flex;
+  display: flex;
   flex-direction: column;
-  gap: var(--small-padding)
+  gap: var(--small-padding);
 }
 
 @keyframes new-message-right {
@@ -241,9 +243,10 @@ button {
   padding: 0;
   border: none;
   background-color: transparent;
+  font-size: 16px;
 }
 .text-button:hover {
-  color:rgb(84, 105, 199);
+  color: rgb(84, 105, 199);
   background-color: transparent;
 }
 
@@ -300,7 +303,8 @@ button:hover {
 .chat-card-status {
 }
 
-#chat-search-holder, #chat-create-holder {
+#chat-search-holder,
+#chat-create-holder {
   display: flex;
   gap: var(--small-padding);
 }
