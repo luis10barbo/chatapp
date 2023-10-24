@@ -7,6 +7,7 @@
     message: string;
     date_created: string;
     user_id: number;
+    user?: Usuario;
   };
 </script>
 
@@ -16,9 +17,10 @@
   import CardMensagem from "./CardMensagem.svelte";
   import { adquirirProtocoloWS, getJson } from "../utils/requests";
   import { PUBLIC_URL_BACKEND } from "$env/static/public";
-  import { cachedUsers, getUser } from "./+page.svelte";
+  import { cachedUsers, getUser, type Usuario } from "./+page.svelte";
   import { tick } from "svelte";
   import { modificarChat, type Chat } from "./ContainerChatSelector.svelte";
+  import { parseDataDB } from "../utils/date";
 
   export let meuId: number;
   export let chat: Chat;
@@ -41,7 +43,7 @@
   async function addMensagem(mensagem: MensagemSocket, atualizarChat: boolean) {
     const usuario = await getUser(mensagem.id);
     const novaMensagem = {
-      data: new Date(mensagem.date.replace(" ", "T") + "Z"),
+      data: parseDataDB(mensagem.date),
       idUsuario: mensagem.id,
       mensagem: mensagem.message,
       usuario: usuario,

@@ -9,7 +9,11 @@
   };
   let chats: Writable<Chat[] | undefined> = writable(undefined);
 
-  export function modificarChat(novoChat: Chat) {
+  export async function modificarChat(novoChat: Chat) {
+    if (novoChat.last_message)
+      novoChat.last_message.user = await requestUser(
+        novoChat.last_message.user_id
+      );
     chats.update((chats) => {
       return chats?.map((chat) => {
         if (chat.chat_id !== novoChat.chat_id) return chat;
@@ -33,7 +37,7 @@
 <script lang="ts">
   import { PUBLIC_URL_BACKEND } from "$env/static/public";
   import { getJson, postJson } from "../utils/requests";
-  import { selectChat, selectedChat } from "./+page.svelte";
+  import { requestUser, selectChat, selectedChat } from "./+page.svelte";
   import ChatCard from "./ChatCard.svelte";
   import type { MensagemApi } from "./ContainerChat.svelte";
 
