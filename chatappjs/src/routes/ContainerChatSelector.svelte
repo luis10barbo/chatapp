@@ -1,4 +1,5 @@
 <script context="module" lang="ts">
+  import { writable, type Writable } from "svelte/store";
   export type Chat = {
     chat_id: string | number;
     chat_name: string;
@@ -6,6 +7,27 @@
     chat_type: "USER" | "GROUP";
     last_message: MensagemApi | undefined;
   };
+  let chats: Writable<Chat[] | undefined> = writable(undefined);
+
+  export function modificarChat(novoChat: Chat) {
+    chats.update((chats) => {
+      return chats?.map((chat) => {
+        if (chat.chat_id !== novoChat.chat_id) return chat;
+        return novoChat;
+      });
+    });
+  }
+  async function getCards() {
+    const res = await getJson(
+      location.protocol + "//" + PUBLIC_URL_BACKEND + "/chat/"
+    );
+    if (res.status !== 200) {
+      console.error("Erro adquirindo chats");
+      return;
+    }
+    chats.set(JSON.parse(await res.text()) as Chat[]);
+    console.log(chats);
+  }
 </script>
 
 <script lang="ts">
@@ -16,17 +38,7 @@
   import type { MensagemApi } from "./ContainerChat.svelte";
 
   let chatName = "";
-  let chats: Chat[] | undefined = undefined;
 
-  async function getCards() {
-    const res = await getJson(
-      location.protocol + "//" + PUBLIC_URL_BACKEND + "/chat/"
-    );
-    if (res.status !== 200) {
-      console.error("Erro adquirindo chats");
-    }
-    chats = JSON.parse(await res.text()) as Chat[];
-  }
   getCards();
   async function createChat() {
     // console.log(chatName);
@@ -51,15 +63,16 @@
       }}>Criar</button
     >
   </div>
-
-  {#if chats}
-    {#each chats as chat}
-      <ChatCard
-        {chat}
-        click={() => {
-          selectChat(chat);
-        }}
-      />
-    {/each}
-  {/if}
+  {#key chats}
+    {#if $chats}
+      {#each $chats as chat}
+        <ChatCard
+          {chat}
+          click={() => {
+            selectChat(chat);
+          }}
+        />
+      {/each}
+    {/if}
+  {/key}
 </section>

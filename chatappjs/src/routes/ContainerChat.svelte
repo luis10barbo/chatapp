@@ -18,13 +18,13 @@
   import { PUBLIC_URL_BACKEND } from "$env/static/public";
   import { cachedUsers, getUser } from "./+page.svelte";
   import { tick } from "svelte";
-  import type { Chat } from "./ContainerChatSelector.svelte";
+  import { modificarChat, type Chat } from "./ContainerChatSelector.svelte";
 
   export let meuId: number;
   export let chat: Chat;
   let loading = true;
-  let alerta = "Você fez login em outra localização. Desconectado!";
-  let mostrarAlerta = false;
+  let alerta = "Carregando mensagens...";
+  let mostrarAlerta = true;
   let chatHolder: HTMLDivElement;
 
   let mensagens: Mensagem[] = [];
@@ -38,18 +38,24 @@
     date: string;
   };
 
-  async function addMensagem(mensagem: MensagemSocket) {
+  async function addMensagem(mensagem: MensagemSocket, atualizarChat: boolean) {
     const usuario = await getUser(mensagem.id);
-    mensagens = [
-      ...mensagens,
-      {
-        data: new Date(mensagem.date.replace(" ", "T") + "Z"),
-        idUsuario: mensagem.id,
-        mensagem: mensagem.message,
-        usuario: usuario,
-        id: "",
-      },
-    ];
+    const novaMensagem = {
+      data: new Date(mensagem.date.replace(" ", "T") + "Z"),
+      idUsuario: mensagem.id,
+      mensagem: mensagem.message,
+      usuario: usuario,
+      id: "",
+    };
+    mensagens = [...mensagens, novaMensagem];
+    chat.last_message = {
+      date_created: mensagem.date,
+      id: novaMensagem.id,
+      message: novaMensagem.mensagem,
+      user_id: novaMensagem.idUsuario,
+    };
+    modificarChat(chat);
+
     await tick();
     await tick();
     scrollToBottomMsgs();
@@ -62,12 +68,15 @@
   function enviarMensagem() {
     ws.send(mensagemEnviar);
     const dateNow = new Date().toISOString();
-    addMensagem({
-      id: meuId,
-      message: mensagemEnviar,
-      message_type: "TEXT",
-      date: dateNow.substring(0, dateNow.length - 1),
-    });
+    addMensagem(
+      {
+        id: meuId,
+        message: mensagemEnviar,
+        message_type: "TEXT",
+        date: dateNow.substring(0, dateNow.length - 1),
+      },
+      true
+    );
     mensagemEnviar = "";
   }
 
@@ -82,7 +91,7 @@
     ws.addEventListener("message", (msg) => {
       const mensagem: MensagemSocket = JSON.parse(msg.data);
       console.log(mensagem);
-      if (mensagem.message_type === "TEXT") addMensagem(mensagem);
+      if (mensagem.message_type === "TEXT") addMensagem(mensagem, true);
       else if (mensagem.message_type === "JOIN") contagemOnline++;
       else if (mensagem.message_type === "LEAVE") contagemOnline--;
       else if (mensagem.message_type === "INIT")
@@ -114,8 +123,9 @@
   }
 
   onMount(async () => {
-    getMessages(0);
-    setupWebSocket();
+    await getMessages(0);
+    await setupWebSocket();
+    mostrarAlerta = false;
     setTimeout(() => {
       loading = false;
     }, 100);
