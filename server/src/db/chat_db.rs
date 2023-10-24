@@ -64,7 +64,13 @@ impl ChatTable for Database {
 
         for row in rows {
             let mut row = row?;
-            row.last_message = Some(self.get_last_chat_message(row.chat_id.clone())?);
+            let last_message = self.get_last_chat_message(row.chat_id.clone());
+            let Ok(last_message) =  last_message else {
+                println!("Error getting last message from chat {} {:?}", row.chat_id.clone(), last_message.unwrap_err());
+                chats.push(row);
+                continue;
+            };
+            row.last_message = Some(last_message);
             chats.push(row);
         }
         Ok(chats)
