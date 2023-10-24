@@ -2,7 +2,10 @@ use rusqlite::params;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::Database;
+use super::{
+    chat_message_db::{ChatMessage, ChatMessagesTable},
+    Database,
+};
 
 pub const CHAT_TABLE_SQL: &str = "CREATE TABLE IF NOT EXISTS chats (
     chat_id VARCHAR(36) PRIMARY KEY,
@@ -27,20 +30,12 @@ pub struct Chat {
     chat_name: String,
     chat_desc: String,
     chat_type: ChatTypes,
+    last_message: Option<ChatMessage>,
 }
 pub trait ChatTable {
     fn create_chat(&self, nome: &str) -> Result<String, rusqlite::Error>;
-    fn send_chat_message(&self, msg: ChatMessage) -> Result<String, rusqlite::Error>;
     fn get_chats(&self) -> Result<Vec<Chat>, rusqlite::Error>;
     fn get_chat(&self, chat_id: &str, t: ChatTypes) -> Result<Chat, rusqlite::Error>;
-}
-
-pub struct ChatMessage {
-    pub chat_id: String,
-    pub date_created: String,
-    pub message: String,
-    pub message_id: String,
-    pub user_id: i32,
 }
 
 impl ChatTable for Database {
@@ -63,10 +58,14 @@ impl ChatTable for Database {
                 chat_name: row.get(1)?,
                 chat_desc: row.get(2)?,
                 chat_type: ChatTypes::GROUP,
+                last_message: None,
             })
         })?;
+
         for row in rows {
-            chats.push(row?);
+            let mut row = row?;
+            row.last_message = Some(self.get_last_chat_message(row.chat_id.clone())?);
+            chats.push(row);
         }
         Ok(chats)
     }
@@ -80,19 +79,9 @@ impl ChatTable for Database {
                 chat_name: row.get(1)?,
                 chat_desc: row.get(2)?,
                 chat_type: ChatTypes::GROUP,
+                last_message: None,
             })
         })?;
         Ok(res)
-    }
-    fn send_chat_message(&self, msg: ChatMessage) -> Result<String, rusqlite::Error> {
-        let mut stmt = self.conn.prepare("INSERT INTO chat_messages (chat_message_id, chat_id, user_id, message, date_created) VALUES (?, ?, ?, ?, ?)")?;
-        stmt.execute(params![
-            msg.message_id.to_string(),
-            msg.chat_id.to_string(),
-            msg.user_id,
-            msg.message,
-            msg.date_created
-        ])?;
-        Ok(msg.message_id)
     }
 }

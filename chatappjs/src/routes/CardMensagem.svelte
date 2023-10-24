@@ -33,6 +33,7 @@
             chat_id: user.user_id,
             chat_name: user.user_name ? user.user_name : user.user_nick,
             chat_type: "USER",
+            last_message: undefined,
           });
         }}
       >

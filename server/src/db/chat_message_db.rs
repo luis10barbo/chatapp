@@ -30,6 +30,7 @@ pub trait ChatMessagesTable {
         chat_id: String,
         offset: usize,
     ) -> Result<Vec<ChatMessage>, rusqlite::Error>;
+    fn get_last_chat_message(&self, chat_id: String) -> Result<ChatMessage, rusqlite::Error>;
 }
 
 pub struct InsertChatMessage<'t> {
@@ -55,6 +56,20 @@ impl ChatMessagesTable for Database {
             return Err(err);
         }
         Ok(message_id)
+    }
+
+    fn get_last_chat_message(&self, chat_id: String) -> Result<ChatMessage, rusqlite::Error> {
+        let mut stmt = self.conn.prepare("SELECT chat_message_id, user_id, message, date_created FROM chat_messages WHERE chat_id = ? ORDER BY datetime(date_created) DESC LIMIT 1")?;
+        let query = stmt.query_row(params![chat_id], |row| {
+            Ok(ChatMessage {
+                id: row.get(0)?,
+                user_id: row.get(1)?,
+                message: row.get(2)?,
+                date_created: row.get(3)?,
+            })
+        })?;
+
+        Ok(query)
     }
 
     fn get_chat_messages(

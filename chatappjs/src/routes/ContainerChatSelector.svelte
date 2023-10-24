@@ -4,6 +4,7 @@
     chat_name: string;
     chat_desc: string;
     chat_type: "USER" | "GROUP";
+    last_message: MensagemApi | undefined;
   };
 </script>
 
@@ -12,6 +13,7 @@
   import { getJson, postJson } from "../utils/requests";
   import { selectChat, selectedChat } from "./+page.svelte";
   import ChatCard from "./ChatCard.svelte";
+  import type { MensagemApi } from "./ContainerChat.svelte";
 
   let chatName = "";
   let chats: Chat[] | undefined = undefined;

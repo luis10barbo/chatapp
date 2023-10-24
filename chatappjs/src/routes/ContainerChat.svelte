@@ -1,6 +1,13 @@
 <script context="module" lang="ts">
   let ws: WebSocket;
   let infoChats: Set<Chat> = new Set();
+
+  export type MensagemApi = {
+    id: string;
+    message: string;
+    date_created: string;
+    user_id: number;
+  };
 </script>
 
 <script lang="ts">
@@ -29,13 +36,6 @@
     message: string;
     id: number;
     date: string;
-  };
-
-  type MensagemApi = {
-    id: string;
-    message: string;
-    date_created: string;
-    user_id: number;
   };
 
   async function addMensagem(mensagem: MensagemSocket) {
