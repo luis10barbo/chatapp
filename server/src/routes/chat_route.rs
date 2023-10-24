@@ -94,7 +94,9 @@ pub async fn get_chats_router(app_ctx: Data<AppContext>) -> impl Responder {
     let Ok(db) = app_ctx.db.lock() else {
         return HttpResponse::InternalServerError().body("Erro adquirindo db");
     };
-    let Ok(chats) = db.get_chats() else {
+    let chats = db.get_chats();
+    let Ok(chats) = chats else {
+        println!("{:?}", chats.unwrap_err());
         return HttpResponse::InternalServerError().body("Erro adquirindo chats");
     };
     HttpResponse::Ok().json(chats)
