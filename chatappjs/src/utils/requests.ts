@@ -17,5 +17,7 @@ export async function getJson(url: string) {
 }
 
 export async function requestPerfil() {
-  return getJson("http://" + PUBLIC_URL_BACKEND + "/user/me");
+  return getJson(
+    window.location.protocol + "//" + PUBLIC_URL_BACKEND + "/user/me"
+  );
 }

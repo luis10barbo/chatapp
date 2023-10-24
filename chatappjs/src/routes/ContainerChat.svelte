@@ -72,11 +72,6 @@
   }
 
   async function setupWebSocket() {
-    // const res = await getJson(`http://${PUBLIC_URL_BACKEND}/chat/auth`);
-    // if (res.status !== 200) {
-    //   console.error("Erro ao authenticar chat");
-    // }
-    // const auth = await res.text();
     if (ws) ws.close();
 
     ws = new WebSocket(
@@ -103,7 +98,7 @@
 
   async function getMessages(offset: number) {
     const res = await getJson(
-      `http://${PUBLIC_URL_BACKEND}/chat/messages/${chat.chat_id}?offset=${offset}`
+      `${window.location.protocol}//${PUBLIC_URL_BACKEND}/chat/messages/${chat.chat_id}?offset=${offset}`
     );
     if (res.status !== 200) {
       return;

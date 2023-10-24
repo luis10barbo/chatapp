@@ -37,10 +37,13 @@
   }
   async function logar() {
     limparMensagens();
-    postJson("http://" + PUBLIC_URL_BACKEND + "/user/login", {
-      usuario,
-      senha,
-    }).then(async (res) => {
+    postJson(
+      window.location.protocol + "//" + PUBLIC_URL_BACKEND + "/user/login",
+      {
+        usuario,
+        senha,
+      }
+    ).then(async (res) => {
       if (res.status === 200) {
         setarMensagem("Login bem sucedido! Redirecionando...");
         window.location.replace("/");
@@ -53,10 +56,13 @@
   }
   async function registrar() {
     limparMensagens();
-    await postJson("http://" + PUBLIC_URL_BACKEND + "/user/registrar", {
-      usuario,
-      senha,
-    }).then(async (res) => {
+    await postJson(
+      window.location.protocol + "//" + PUBLIC_URL_BACKEND + "/user/registrar",
+      {
+        usuario,
+        senha,
+      }
+    ).then(async (res) => {
       if (res.status === 200) {
         setarMensagem("Registro bem sucedido! Redirecionando...");
         window.location.replace("/");

@@ -50,7 +50,7 @@
     window.location.replace("/login");
   }
   async function deslogar() {
-    await postJson("http://" + PUBLIC_URL_BACKEND + "/user/sair", {});
+    await postJson(window.location.protocol + PUBLIC_URL_BACKEND + "/user/sair", {});
     window.location.reload();
     // redirecionarLogin();
   }
