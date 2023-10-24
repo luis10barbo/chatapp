@@ -21,3 +21,7 @@ export async function requestPerfil() {
     window.location.protocol + "//" + PUBLIC_URL_BACKEND + "/user/me"
   );
 }
+
+export function adquirirProtocoloWS() {
+  return window.location.protocol === "https:" ? "wss:" : "ws:";
+}

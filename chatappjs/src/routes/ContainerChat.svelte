@@ -7,7 +7,7 @@
   import { onMount } from "svelte";
   import type { Mensagem } from "./CardMensagem.svelte";
   import CardMensagem from "./CardMensagem.svelte";
-  import { getJson } from "../utils/requests";
+  import { adquirirProtocoloWS, getJson } from "../utils/requests";
   import { PUBLIC_URL_BACKEND } from "$env/static/public";
   import { cachedUsers, getUser } from "./+page.svelte";
   import { tick } from "svelte";
@@ -75,7 +75,9 @@
     if (ws) ws.close();
 
     ws = new WebSocket(
-      `ws://${PUBLIC_URL_BACKEND}/chat/connect/${chat.chat_id}?t=GROUP`
+      `${adquirirProtocoloWS()}//${PUBLIC_URL_BACKEND}/chat/connect/${
+        chat.chat_id
+      }?t=GROUP`
     );
     ws.addEventListener("message", (msg) => {
       const mensagem: MensagemSocket = JSON.parse(msg.data);
