@@ -49,6 +49,10 @@ body {
   /* max-width: 1080px; */
 }
 
+.section-header {
+  background-color: var(--cor-secundaria);
+}
+
 .section-header,
 .section-footer {
   display: flex;
@@ -136,7 +140,6 @@ body {
 }
 
 #curr-chat-header {
-  border-bottom: solid 1px black;
   width: 100%;
 }
 
