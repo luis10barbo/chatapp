@@ -23,7 +23,7 @@
   import { parseDataDB } from "../utils/date";
 
   export let meuId: number;
-  export let chat: Chat;
+  export let chat: Chat | undefined;
   let loading = true;
   let alerta = "Carregando mensagens...";
   let mostrarAlerta = true;
@@ -41,6 +41,8 @@
   };
 
   async function addMensagem(mensagem: MensagemSocket, atualizarChat: boolean) {
+    if (!chat) return;
+
     const usuario = await getUser(mensagem.id);
     const novaMensagem = {
       data: parseDataDB(mensagem.date),
@@ -83,6 +85,8 @@
   }
 
   async function setupWebSocket() {
+    if (!chat) return;
+
     if (ws) ws.close();
 
     ws = new WebSocket(
@@ -110,6 +114,8 @@
   }
 
   async function getMessages(offset: number) {
+    if (!chat) return;
+
     const res = await getJson(
       `${window.location.protocol}//${PUBLIC_URL_BACKEND}/chat/messages/${chat.chat_id}?offset=${offset}`
     );
@@ -150,14 +156,16 @@
 </script>
 
 <section id="curr-chat" class={`${loading ? "notransition" : ""}`}>
-  <div id="aviso-container" class={` ${mostrarAlerta ? "" : "hidden"}`}>
-    <div id="aviso">{alerta}</div>
-  </div>
+  {#if chat}
+    <div id="aviso-container" class={` ${mostrarAlerta ? "" : "hidden"}`}>
+      <div id="aviso">{alerta}</div>
+    </div>
+  {/if}
   <header id="curr-chat-header" class="section-header">
     <button id="curr-chat-desc">
       <img id="img-curr-chat" />
       <div id="curr-chat-info">
-        <p>{chat.chat_name}</p>
+        <p>{chat ? chat.chat_name : "Nenhum chat selecionado"}</p>
         <p class="chat-status" />
       </div>
     </button>
@@ -174,21 +182,23 @@
     {/each}
   </div>
   <footer id="curr-chat-footer" class="section-footer">
-    <input
-      bind:value={mensagemEnviar}
-      id="send-message"
-      placeholder="Escreva uma mensagem..."
-      on:keydown={(event) => {
-        if (event.key === "Enter") {
+    {#if chat}
+      <input
+        bind:value={mensagemEnviar}
+        id="send-message"
+        placeholder="Escreva uma mensagem..."
+        on:keydown={(event) => {
+          if (event.key === "Enter") {
+            enviarMensagem();
+          }
+        }}
+      />
+      <button
+        id="send-message-button"
+        on:click={() => {
           enviarMensagem();
-        }
-      }}
-    />
-    <button
-      id="send-message-button"
-      on:click={() => {
-        enviarMensagem();
-      }}>Enviar</button
-    >
+        }}>Enviar</button
+      >
+    {/if}
   </footer>
 </section>

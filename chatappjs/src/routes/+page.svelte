@@ -94,9 +94,7 @@
       </footer>
     </section>
     {#key $selectedChat}
-      {#if $selectedChat}
-        <ContainerChat chat={$selectedChat} meuId={usuario.user_id} />
-      {/if}
+      <ContainerChat chat={$selectedChat} meuId={usuario.user_id} />
     {/key}
   {/if}
 </div>
