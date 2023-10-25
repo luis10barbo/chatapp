@@ -2,10 +2,12 @@
   import { writable, type Writable } from "svelte/store";
   export type Chat = {
     chat_id: string | number;
+    creator_id: number;
     chat_name: string;
     chat_desc: string;
     chat_type: "USER" | "GROUP";
     last_message: MensagemApi | undefined;
+    date_created: string;
   };
   let chats: Writable<Chat[] | undefined> = writable(undefined);
 
