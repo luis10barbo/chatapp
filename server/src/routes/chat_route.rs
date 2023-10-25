@@ -108,14 +108,15 @@ pub async fn create_chat_route(
     app_ctx: Data<AppContext>,
     body: Json<CreateChatRoute>,
 ) -> impl Responder {
-    if let Err(err) = is_logged_in(&session) {
-        return err;
+    let is_logged_in = is_logged_in(&session);
+    let Ok(user_id) = is_logged_in else {
+        return is_logged_in.unwrap_err();
     };
     let Ok(db) = app_ctx.db.lock() else {
         return HttpResponse::InternalServerError().body("Error fetching db from context");
     };
 
-    let res = db.create_chat(&body.nome);
+    let res = db.create_chat(&body.nome, user_id);
     let Ok(chat_id) = res else {
         log::error!("Error creating chat, {:?}", res.unwrap_err());
         return HttpResponse::InternalServerError().body("Erro ao criar grupo de chat.")
