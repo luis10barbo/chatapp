@@ -23,7 +23,9 @@ pub const CHAT_TABLE_SQL: &str = "CREATE TABLE IF NOT EXISTS chats (
 pub const CHAT_USERS_TABLE_SQL: &str = "CREATE TABLE IF NOT EXISTS chat_users (
     chat_user_id INTEGER PRIMARY KEY AUTOINCREMENT,
     chat_id INTEGER NOT NULL,
-    user_id INTEGER NOT NULL
+    user_id INTEGER NOT NULL,
+    FOREIGN KEY (chat_id) REFERENCES chats(chat_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
 );";
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub enum ChatTypes {
