@@ -64,7 +64,7 @@ body {
   display: flex;
   flex-direction: column;
   position: relative;
-  padding: var(--small-padding);
+  /* padding: var(--small-padding); */
   overflow: hidden;
   min-width: fit-content;
 }
@@ -132,10 +132,11 @@ body {
 
 #curr-chat {
   box-shadow: -1px 1px 4px 1px rgba(0, 0, 0, 0.1);
+  width: 100%;
 }
 
-#curr-chat-header,
-#curr-chat {
+#curr-chat-header {
+  border-bottom: solid 1px black;
   width: 100%;
 }
 
@@ -186,6 +187,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: var(--small-padding);
+  padding: var(--small-padding);
 }
 
 @keyframes new-message-right {
