@@ -168,7 +168,7 @@
           <!-- {JSON.stringify(chat)} -->
           <header id="perfil-chat-header">
             <img id="img-curr-chat" />
-            <div id="perfil-titulo-desc-holder">
+            <div id="perfil-titulo-holder">
               <p id="perfil-chat-titulo">{chat.chat_name}</p>
             </div>
             <button
