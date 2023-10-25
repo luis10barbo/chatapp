@@ -21,6 +21,7 @@
   import { tick } from "svelte";
   import { modificarChat, type Chat } from "./ContainerChatSelector.svelte";
   import { parseDataDB } from "../utils/date";
+  import HeightTransition from "$lib/utils/components/HeightTransition.svelte";
 
   async function addMensagem(mensagem: MensagemSocket, atualizarChat: boolean) {
     if (!chat) return;
@@ -146,7 +147,7 @@
   let mensagens: Mensagem[] = [];
   let contagemOnline = 0;
   let mensagemEnviar = "";
-  let mostrarPerfil = false;
+  let mostrarPerfil = true;
 
   type MensagemSocket = {
     message_type: string;
@@ -162,18 +163,30 @@
       <div id="aviso">{alerta}</div>
     </div>
     <div id="perfil-chat-container" class={`${mostrarPerfil ? "" : "hidden"}`}>
-      <div id="perfil-chat">
-        <header id="perfil-chat-header">
-          <img id="img-curr-chat" />
+      <HeightTransition enabled={mostrarPerfil} timeMS={150}>
+        <div id="perfil-chat">
+          <!-- {JSON.stringify(chat)} -->
+          <header id="perfil-chat-header">
+            <img id="img-curr-chat" />
+            <div id="perfil-titulo-desc-holder">
+              <p id="perfil-chat-titulo">{chat.chat_name}</p>
+            </div>
+            <button
+              on:click={() => {
+                mostrarPerfil = false;
+              }}>Fechar</button
+            >
+          </header>
+          <p id="perfil-chat-desc">
+            {chat.chat_desc ? chat.chat_desc : "Sem descricao"}
+          </p>
+          <p id="perfil-data-criada">Criado em {chat.date_created}</p>
 
-          <p id="perfil-chat-titulo">{chat.chat_name}</p>
-          <button
-            on:click={() => {
-              mostrarPerfil = false;
-            }}>Fechar</button
-          >
-        </header>
-      </div>
+          <section id="perfil-aba-participantes">
+            <p>Participantes</p>
+          </section>
+        </div>
+      </HeightTransition>
     </div>
   {/if}
 
