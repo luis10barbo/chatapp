@@ -341,6 +341,7 @@ button:hover {
 
 #perfil-chat-container > * {
   box-shadow: 0px 1px 4px 1px rgba(0, 0, 0, 0.1);
+  border-radius: var(--arredondamento-m);
 }
 #perfil-chat-container.hidden > * {
   box-shadow: 0px 1px 4px 1px rgba(0, 0, 0, 0);
@@ -357,7 +358,7 @@ button:hover {
   gap: var(--small-padding);
   background-color: white;
 
-  border-radius: var(--arredondamento);
+  border-radius: var(--arredondamento-m);
 
   padding: var(--small-padding);
 
