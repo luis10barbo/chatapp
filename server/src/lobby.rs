@@ -212,10 +212,10 @@ impl Handler<Connect> for Lobby {
                 )
             });
 
-        if let Some(old_session) = self.sessions.insert(msg.id, msg.addr) {
-            // old_session.to_owned().send()
-            ctx.stop();
-        };
+        // if let Some(old_session) = self.sessions.insert(msg.id, msg.addr) {
+        //     // old_session.to_owned().send()
+        //     ctx.stop();
+        // };
         println!("{:?}", self.sessions.keys());
         self.send_message(
             SocketMessage {
