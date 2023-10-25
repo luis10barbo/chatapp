@@ -44,6 +44,8 @@
     chats.set(reqChats);
     console.log(chats);
   }
+
+  let sidebarAtivada = true;
 </script>
 
 <script lang="ts">

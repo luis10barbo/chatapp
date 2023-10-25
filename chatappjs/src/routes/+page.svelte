@@ -8,6 +8,7 @@
   };
   export let cachedUsers = new Map<Usuario["user_id"], Usuario>();
   export let selectedChat: Writable<undefined | Chat> = writable(undefined);
+  export let sidebarAtivada = writable(true);
   const TAG_ULTIMO_CHAT_ID = "ULTIMO_CHAT_ID";
   export async function selectChat(chat: Chat) {
     localStorage.setItem(TAG_ULTIMO_CHAT_ID, chat.chat_id.toString());
@@ -102,8 +103,16 @@
       <p style="font-size: 20px;">Carregando...</p>
     </div>
   {:else}
-    <section id="chats">
+    <section id="chats" class={`${$sidebarAtivada ? "" : "hidden"}`}>
       <header id="chats-header" class="section-header">
+        <button
+          class="open-sidebar"
+          style="position: absolute; left: 1rem;"
+          on:click={() => {
+            sidebarAtivada.update((ultimoValor) => !ultimoValor);
+          }}
+          >Menu
+        </button>
         <p>Conversas</p>
       </header>
       <ContainerChatSelector />

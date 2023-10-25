@@ -21,6 +21,7 @@
     cachedUsers,
     getUser,
     selectChat,
+    sidebarAtivada,
     type Usuario,
   } from "./+page.svelte";
   import { tick } from "svelte";
@@ -214,6 +215,14 @@
   {/if}
 
   <header id="curr-chat-header" class="section-header">
+    <button
+      class="toggle-sidebar"
+      on:click={() => {
+        sidebarAtivada.update((ultimoValor) => !ultimoValor);
+      }}
+      >Menu
+    </button>
+
     <button
       id="curr-chat-desc"
       on:click={() => {

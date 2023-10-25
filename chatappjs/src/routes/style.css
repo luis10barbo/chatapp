@@ -277,6 +277,18 @@ button:hover {
   background-color: var(--cor-secundaria-high);
 }
 
+#chats {
+  width: 100%;
+
+  transition: 150ms;
+  max-width: max-content;
+  min-width: 0;
+}
+
+#chats.hidden {
+  max-width: 0;
+}
+
 #chats-holder {
   display: flex;
 }
@@ -407,4 +419,19 @@ button:hover {
 
 #perfil-aba-participantes {
   margin-top: var(--small-padding);
+}
+
+@media (max-width: 700px) {
+  #chats {
+    position: absolute;
+    background-color: white;
+    z-index: 20;
+    height: 100%;
+    box-shadow: 3px 0px 4px 1px rgba(29, 29, 29, 0.15);
+    min-width: 100%;
+  }
+  #page-shadow {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
 }
