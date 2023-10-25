@@ -153,10 +153,6 @@ body {
 
   align-items: center;
 }
-#curr-chat-desc:hover {
-  background-color: var(--cor-secundaria);
-  cursor: pointer;
-}
 
 #curr-chat-online-holder {
   margin-left: auto;

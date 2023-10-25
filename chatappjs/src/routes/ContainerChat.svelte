@@ -154,13 +154,13 @@
     <div id="aviso">{alerta}</div>
   </div>
   <header id="curr-chat-header" class="section-header">
-    <div id="curr-chat-desc">
+    <button id="curr-chat-desc">
       <img id="img-curr-chat" />
       <div id="curr-chat-info">
         <p>{chat.chat_name}</p>
         <p class="chat-status" />
       </div>
-    </div>
+    </button>
 
     <p id="curr-chat-online-holder">
       {#if contagemOnline > 0}
