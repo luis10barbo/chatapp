@@ -136,6 +136,20 @@ body {
   width: 100%;
 }
 
+#curr-chat-desc {
+  display: flex;
+  gap: 1rem;
+  padding: var(--small-padding);
+
+  border-radius: var(--arredondamento);
+
+  align-items: center;
+}
+#curr-chat-desc:hover {
+  background-color: var(--cor-secundaria);
+  cursor: pointer;
+}
+
 #curr-chat-online-holder {
   margin-left: auto;
 }
