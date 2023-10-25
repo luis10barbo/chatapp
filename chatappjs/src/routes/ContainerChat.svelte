@@ -22,24 +22,6 @@
   import { modificarChat, type Chat } from "./ContainerChatSelector.svelte";
   import { parseDataDB } from "../utils/date";
 
-  export let meuId: number;
-  export let chat: Chat | undefined;
-  let loading = true;
-  let alerta = "Carregando mensagens...";
-  let mostrarAlerta = true;
-  let chatHolder: HTMLDivElement;
-
-  let mensagens: Mensagem[] = [];
-  let contagemOnline = 0;
-  let mensagemEnviar = "";
-
-  type MensagemSocket = {
-    message_type: string;
-    message: string;
-    id: number;
-    date: string;
-  };
-
   async function addMensagem(mensagem: MensagemSocket, atualizarChat: boolean) {
     if (!chat) return;
 
@@ -153,6 +135,25 @@
     );
     return messages_parsed;
   }
+
+  export let meuId: number;
+  export let chat: Chat | undefined;
+  let loading = true;
+  let alerta = "Carregando mensagens...";
+  let mostrarAlerta = true;
+  let chatHolder: HTMLDivElement;
+
+  let mensagens: Mensagem[] = [];
+  let contagemOnline = 0;
+  let mensagemEnviar = "";
+  let mostrarPerfil = false;
+
+  type MensagemSocket = {
+    message_type: string;
+    message: string;
+    id: number;
+    date: string;
+  };
 </script>
 
 <section id="curr-chat" class={`${loading ? "notransition" : ""}`}>
@@ -160,9 +161,29 @@
     <div id="aviso-container" class={` ${mostrarAlerta ? "" : "hidden"}`}>
       <div id="aviso">{alerta}</div>
     </div>
+    <div id="perfil-chat-container" class={`${mostrarPerfil ? "" : "hidden"}`}>
+      <div id="perfil-chat">
+        <header id="perfil-chat-header">
+          <img id="img-curr-chat" />
+
+          <p id="perfil-chat-titulo">{chat.chat_name}</p>
+          <button
+            on:click={() => {
+              mostrarPerfil = false;
+            }}>Fechar</button
+          >
+        </header>
+      </div>
+    </div>
   {/if}
+
   <header id="curr-chat-header" class="section-header">
-    <button id="curr-chat-desc">
+    <button
+      id="curr-chat-desc"
+      on:click={() => {
+        mostrarPerfil = true;
+      }}
+    >
       <img id="img-curr-chat" />
       <div id="curr-chat-info">
         <p>{chat ? chat.chat_name : "Nenhum chat selecionado"}</p>
