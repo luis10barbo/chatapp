@@ -17,7 +17,12 @@
   import CardMensagem from "./CardMensagem.svelte";
   import { adquirirProtocoloWS, getJson } from "../utils/requests";
   import { PUBLIC_URL_BACKEND } from "$env/static/public";
-  import { cachedUsers, getUser, type Usuario } from "./+page.svelte";
+  import {
+    cachedUsers,
+    getUser,
+    selectChat,
+    type Usuario,
+  } from "./+page.svelte";
   import { tick } from "svelte";
   import { modificarChat, type Chat } from "./ContainerChatSelector.svelte";
   import { parseDataDB } from "../utils/date";
@@ -147,7 +152,7 @@
   let mensagens: Mensagem[] = [];
   let contagemOnline = 0;
   let mensagemEnviar = "";
-  let mostrarPerfil = true;
+  let mostrarPerfil = false;
 
   type MensagemSocket = {
     message_type: string;
@@ -180,7 +185,25 @@
           <p id="perfil-chat-desc">
             {chat.chat_desc ? chat.chat_desc : "Sem descricao"}
           </p>
-          <p id="perfil-data-criada">Criado em {chat.date_created}</p>
+          <p id="perfil-data-criada">
+            Criado em {chat.date_created} <br /> por
+            <button
+              class="text-button"
+              style="font-size: 12px;"
+              on:click={() => {
+                if (!chat?.creator) return;
+                selectChat({
+                  chat_desc: "",
+                  chat_id: chat.creator.user_id,
+                  chat_name: chat.creator.user_name
+                    ? chat.creator.user_name
+                    : chat.creator.user_nick,
+                  chat_type: "USER",
+                  last_message: undefined,
+                });
+              }}><b>{chat.creator?.user_nick}</b></button
+            >
+          </p>
 
           <section id="perfil-aba-participantes">
             <p>Participantes</p>
