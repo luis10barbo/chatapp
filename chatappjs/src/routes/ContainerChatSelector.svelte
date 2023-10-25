@@ -2,13 +2,13 @@
   import { writable, type Writable } from "svelte/store";
   export type Chat = {
     chat_id: string | number;
-    creator_id: number;
-    creator: Usuario | undefined;
+    creator_id?: number;
+    creator?: Usuario;
     chat_name: string;
     chat_desc: string;
     chat_type: "USER" | "GROUP";
-    last_message: MensagemApi | undefined;
-    date_created: string;
+    last_message?: MensagemApi;
+    date_created?: string;
   };
   let chats: Writable<Chat[] | undefined> = writable(undefined);
 
@@ -35,7 +35,7 @@
     let reqChats = JSON.parse(await res.text()) as Chat[];
     reqChats = await Promise.all(
       reqChats.map(async (chat) => {
-        chat.creator = await requestUser(chat.creator_id);
+        if (chat.creator_id) chat.creator = await requestUser(chat.creator_id);
         if (chat.last_message)
           chat.last_message.user = await requestUser(chat.last_message.user_id);
         return chat;
