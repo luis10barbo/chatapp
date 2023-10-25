@@ -3,6 +3,7 @@
   export type Chat = {
     chat_id: string | number;
     creator_id: number;
+    creator: Usuario | undefined;
     chat_name: string;
     chat_desc: string;
     chat_type: "USER" | "GROUP";
@@ -31,7 +32,16 @@
       console.error("Erro adquirindo chats");
       return;
     }
-    chats.set(JSON.parse(await res.text()) as Chat[]);
+    let reqChats = JSON.parse(await res.text()) as Chat[];
+    reqChats = await Promise.all(
+      reqChats.map(async (chat) => {
+        chat.creator = await requestUser(chat.creator_id);
+        if (chat.last_message)
+          chat.last_message.user = await requestUser(chat.last_message.user_id);
+        return chat;
+      })
+    );
+    chats.set(reqChats);
     console.log(chats);
   }
 </script>
@@ -44,6 +54,7 @@
     selectChat,
     selectedChat,
     selectLastChat,
+    type Usuario,
   } from "./+page.svelte";
   import ChatCard from "./ChatCard.svelte";
   import type { MensagemApi } from "./ContainerChat.svelte";
