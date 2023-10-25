@@ -8,9 +8,29 @@
   };
   export let cachedUsers = new Map<Usuario["user_id"], Usuario>();
   export let selectedChat: Writable<undefined | Chat> = writable(undefined);
-
+  const TAG_ULTIMO_CHAT_ID = "ULTIMO_CHAT_ID";
   export async function selectChat(chat: Chat) {
+    localStorage.setItem(TAG_ULTIMO_CHAT_ID, chat.chat_id.toString());
     selectedChat.set(chat);
+  }
+
+  export async function selectLastChat(chats: Chat[]) {
+    const ultimoChat = localStorage.getItem(TAG_ULTIMO_CHAT_ID);
+    if (!ultimoChat) return;
+
+    let idChat: Chat["chat_id"];
+    if (!Number.isNaN(ultimoChat)) {
+      idChat = ultimoChat;
+    } else {
+      idChat = Number.parseInt(ultimoChat);
+    }
+
+    for (let i = 0; i < chats.length; i++) {
+      const chat = chats.at(i);
+      if (!chat || chat.chat_id !== idChat) return;
+
+      selectChat(chat);
+    }
   }
 
   export async function requestUser(user_id: Usuario["user_id"]) {

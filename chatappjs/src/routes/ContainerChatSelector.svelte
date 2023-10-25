@@ -39,13 +39,18 @@
 <script lang="ts">
   import { PUBLIC_URL_BACKEND } from "$env/static/public";
   import { getJson, postJson } from "../utils/requests";
-  import { requestUser, selectChat, selectedChat } from "./+page.svelte";
+  import {
+    requestUser,
+    selectChat,
+    selectedChat,
+    selectLastChat,
+  } from "./+page.svelte";
   import ChatCard from "./ChatCard.svelte";
   import type { MensagemApi } from "./ContainerChat.svelte";
+  import { onMount } from "svelte";
 
   let chatName = "";
 
-  getCards();
   async function createChat() {
     // console.log(chatName);
     await postJson(`${location.protocol}//${PUBLIC_URL_BACKEND}/chat/create`, {
@@ -53,6 +58,13 @@
     });
     chatName = "";
   }
+
+  onMount(async () => {
+    await getCards();
+    console.log($chats);
+    if (!$chats) return;
+    selectLastChat($chats);
+  });
 </script>
 
 <section id="chats-holder">
