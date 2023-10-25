@@ -1,4 +1,4 @@
-use rusqlite::params;
+use rusqlite::{params, ErrorCode};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -65,12 +65,18 @@ impl ChatTable for Database {
         for row in rows {
             let mut row = row?;
             let last_message = self.get_last_chat_message(row.chat_id.clone());
-            let Ok(last_message) =  last_message else {
-                println!("Error getting last message from chat {} {:?}", row.chat_id.clone(), last_message.unwrap_err());
-                chats.push(row);
-                continue;
+            if let Ok(last_message) = last_message {
+                row.last_message = Some(last_message);
+            } else {
+                let err = last_message.unwrap_err();
+                if err != rusqlite::Error::QueryReturnedNoRows {
+                    println!(
+                        "Unknown error getting last message from chat {} {:?}",
+                        row.chat_id.clone(),
+                        err.sqlite_error_code()
+                    );
+                }
             };
-            row.last_message = Some(last_message);
             chats.push(row);
         }
         Ok(chats)
