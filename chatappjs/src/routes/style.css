@@ -53,11 +53,10 @@ body {
 .section-footer {
   display: flex;
   /* padding: var(--default-padding); */
-  padding-left: var(--small-padding);
-  padding-right: var(--small-padding);
+  padding: var(--small-padding);
   gap: var(--small-padding);
   align-items: center;
-  height: 4rem;
+  min-height: 80px;
 }
 
 #curr-chat,
@@ -129,6 +128,10 @@ body {
 
   border-radius: 100%;
   background-color: grey;
+}
+
+#curr-chat {
+  box-shadow: -1px 1px 4px 1px rgba(0, 0, 0, 0.1);
 }
 
 #curr-chat-header,
