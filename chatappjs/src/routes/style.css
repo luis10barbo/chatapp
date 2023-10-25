@@ -50,11 +50,12 @@ body {
 }
 
 .section-header {
-  background-color: var(--cor-secundaria);
 }
 
 .section-header,
 .section-footer {
+  background-color: var(--cor-secundaria);
+
   display: flex;
   /* padding: var(--default-padding); */
   padding: var(--small-padding);
@@ -135,7 +136,7 @@ body {
 }
 
 #curr-chat {
-  box-shadow: -1px 1px 4px 1px rgba(0, 0, 0, 0.1);
+  /* box-shadow: -1px 1px 4px 1px rgba(0, 0, 0, 0.1); */
   width: 100%;
 }
 
