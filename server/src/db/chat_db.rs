@@ -47,6 +47,7 @@ pub trait ChatTable {
     fn create_chat(&self, nome: &str, id_usuario: i64) -> Result<String, rusqlite::Error>;
     fn get_chats(&self) -> Result<Vec<Chat>, rusqlite::Error>;
     fn get_chat(&self, chat_id: &str, t: ChatTypes) -> Result<Chat, rusqlite::Error>;
+    fn remove_chat(&self, chat_id: &str) -> Result<usize, rusqlite::Error>;
 }
 
 impl ChatTable for Database {
@@ -114,6 +115,16 @@ impl ChatTable for Database {
                 last_message: None,
             })
         })?;
+        Ok(res)
+    }
+
+    fn remove_chat(&self, chat_id: &str) -> Result<usize, rusqlite::Error> {
+        // let res = self.conn.prepare("DELETE FROM ")
+        let res = self
+            .conn
+            .prepare("DELETE FROM chats WHERE chat_id = ?")?
+            .execute(params![chat_id])?;
+        log::debug!("{:?}", res);
         Ok(res)
     }
 }

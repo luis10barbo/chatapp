@@ -24,6 +24,17 @@
       });
     });
   }
+
+  export function removerChat(chat: Chat) {
+    chats.update((chats) => {
+      if (!chats) return chats;
+      return chats.flatMap((chatTemp) => {
+        if (chatTemp.chat_id === chat.chat_id) return [];
+        return chatTemp;
+      });
+    });
+  }
+
   async function getCards() {
     const res = await getJson(
       location.protocol + "//" + PUBLIC_URL_BACKEND + "/chat/"

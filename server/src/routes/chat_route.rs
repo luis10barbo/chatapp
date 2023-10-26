@@ -27,6 +27,7 @@ pub fn chat_scope() -> Scope {
         .service(create_chat_route)
         .service(get_chats_router)
         .service(get_messages)
+        .service(remove_chat)
 }
 
 #[get("/auth")]
@@ -196,4 +197,35 @@ pub async fn get_messages(
         return HttpResponse::InternalServerError().body("Undocumented error getting messages");
     };
     HttpResponse::Ok().json(messages)
+}
+
+#[derive(Debug, Deserialize)]
+pub struct DeleteBody {
+    chat_id: String,
+}
+
+#[post("/remove")]
+pub async fn remove_chat(
+    body: Json<DeleteBody>,
+    session: Session,
+    app_ctx: Data<AppContext>,
+) -> impl Responder {
+    let user_id = get_user_id(&session);
+    let RespostaAdquirirIdSessao::Id(user_id) = user_id else {
+        let RespostaAdquirirIdSessao::Erro(err) = user_id else {
+            panic!()
+        };
+        return err;
+    };
+
+    let Ok(db) = app_ctx.db.lock() else {
+        return HttpResponse::InternalServerError().body("Falha ao adquirir db");
+    };
+
+    if let Err(err) = db.remove_chat(&body.chat_id) {
+        log::error!("{:?}", err);
+        return HttpResponse::InternalServerError().body("Erro ao deletar chat");
+    };
+
+    HttpResponse::Ok().body(format!("Chat {} deletado", body.chat_id))
 }
