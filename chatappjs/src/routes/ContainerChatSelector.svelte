@@ -77,10 +77,23 @@
 
   async function createChat() {
     // console.log(chatName);
-    await postJson(`${location.protocol}//${PUBLIC_URL_BACKEND}/chat/create`, {
-      nome: chatName,
-    });
+    const res = await postJson(
+      `${location.protocol}//${PUBLIC_URL_BACKEND}/chat/create`,
+      {
+        nome: chatName,
+      }
+    );
     chatName = "";
+    if (res.status !== 200) return;
+
+    const chat = JSON.parse(await res.text()) as Chat;
+    if (chat.creator_id) chat.creator = await requestUser(chat.creator_id);
+
+    chats.update((chats) => {
+      if (!chats) return chats;
+      return [chat, ...chats];
+    });
+    selectChat(chat);
   }
 
   onMount(async () => {
