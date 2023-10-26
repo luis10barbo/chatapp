@@ -125,7 +125,18 @@ impl Handler<ClientActorMessage> for Lobby {
             message: &msg.msg,
             user_id: msg.id,
         }) {
-            log::error!("Error sending message to db {:?}", msg);
+            log::error!("Error sending message to db {:?}", err);
+            if let Some(code) = err.sqlite_error_code() {
+                self.send_message(
+                    SocketMessage {
+                        message_type: crate::message::MessageType::CHAT_DELETED,
+                        message: format!("Chat {:?} foi deletado!", msg.room_id),
+                        id: None,
+                        date: format_date(Utc::now()),
+                    },
+                    &msg.id,
+                );
+            }
             // self.send_message(ChannelDeleted, target_id)
             return ();
         };
