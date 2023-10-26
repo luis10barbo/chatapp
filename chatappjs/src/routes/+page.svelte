@@ -10,8 +10,10 @@
   export let selectedChat: Writable<undefined | Chat> = writable(undefined);
   export let sidebarAtivada = writable(true);
   const TAG_ULTIMO_CHAT_ID = "ULTIMO_CHAT_ID";
-  export async function selectChat(chat: Chat) {
-    localStorage.setItem(TAG_ULTIMO_CHAT_ID, chat.chat_id.toString());
+  export async function selectChat(chat: Chat | undefined) {
+    if (chat) localStorage.setItem(TAG_ULTIMO_CHAT_ID, chat.chat_id.toString());
+    else localStorage.removeItem(TAG_ULTIMO_CHAT_ID);
+
     selectedChat.set(chat);
     if (window.innerWidth < 700) {
       sidebarAtivada.set(false);

@@ -11,7 +11,7 @@ pub const CHAT_MESSAGES_TABLE_SQL: &str = "CREATE TABLE IF NOT EXISTS chat_messa
     message VARCHAR(512),
     date_created VARCHAR(32),
 
-    FOREIGN KEY (chat_id) REFERENCES chats(chat_id),
+    FOREIGN KEY (chat_id) REFERENCES chats(chat_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );";
 

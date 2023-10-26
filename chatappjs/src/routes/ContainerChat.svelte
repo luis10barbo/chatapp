@@ -15,7 +15,7 @@
   import { onMount } from "svelte";
   import type { Mensagem } from "./CardMensagem.svelte";
   import CardMensagem from "./CardMensagem.svelte";
-  import { adquirirProtocoloWS, getJson } from "../utils/requests";
+  import { adquirirProtocoloWS, getJson, postJson } from "../utils/requests";
   import { PUBLIC_URL_BACKEND } from "$env/static/public";
   import {
     cachedUsers,
@@ -25,7 +25,11 @@
     type Usuario,
   } from "./+page.svelte";
   import { tick } from "svelte";
-  import { modificarChat, type Chat } from "./ContainerChatSelector.svelte";
+  import {
+    modificarChat,
+    type Chat,
+    removerChat,
+  } from "./ContainerChatSelector.svelte";
   import { parseDataDB } from "../utils/date";
   import HeightTransition from "$lib/utils/components/HeightTransition.svelte";
 
@@ -158,6 +162,20 @@
     return messages_parsed;
   }
 
+  async function apagarChat() {
+    if (!chat) return;
+    const res = await postJson(
+      window.location.protocol + "//" + PUBLIC_URL_BACKEND + "/chat/remove",
+      {
+        chat_id: chat.chat_id,
+      }
+    );
+    if (res.status === 200) {
+      removerChat(chat);
+      selectChat(undefined);
+    }
+  }
+
   export let meuId: number;
   export let chat: Chat | undefined;
   let loading = false;
@@ -218,9 +236,16 @@
               }}><b>{chat.creator?.user_nick}</b></button
             >
           </p>
-
+          {#if chat?.creator_id === meuId}
+            <button
+              on:click={async () => {
+                apagarChat();
+              }}>Apagar</button
+            >
+          {/if}
           <section id="perfil-aba-participantes">
             <p>Participantes</p>
+            <p>(ainda nao implementado)</p>
           </section>
         </div>
       </HeightTransition>
