@@ -355,6 +355,8 @@ button:hover {
   font-weight: bold;
 }
 .chat-card-status {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #chat-search-holder,
