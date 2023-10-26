@@ -120,6 +120,9 @@
         <button>Contatos</button>
         <button>Perfil</button>
         <button on:click={deslogar}>Sair</button>
+        <a href="https://github.com/luis10barbo/chatapp"
+          ><button on:click={deslogar}>Github</button></a
+        >
       </footer>
     </section>
     {#key $selectedChat}
