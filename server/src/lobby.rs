@@ -112,6 +112,7 @@ impl Handler<ClientActorMessage> for Lobby {
             message: &msg.msg,
             user_id: msg.id,
         }) else {
+            std::mem::forget(db);
             panic!("Error sending message {:?}", msg)
         };
         self.rooms
