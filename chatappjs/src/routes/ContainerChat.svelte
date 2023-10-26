@@ -165,9 +165,6 @@
 
 <section id="curr-chat" class={`${loading ? "notransition" : ""}`}>
   {#if chat}
-    <div id="aviso-container" class={` ${mostrarAlerta ? "" : "hidden"}`}>
-      <div id="aviso">{alerta}</div>
-    </div>
     <div id="perfil-chat-container" class={`${mostrarPerfil ? "" : "hidden"}`}>
       <HeightTransition enabled={mostrarPerfil} timeMS={150}>
         <div id="perfil-chat">
@@ -213,7 +210,6 @@
       </HeightTransition>
     </div>
   {/if}
-
   <header id="curr-chat-header" class="section-header">
     <button
       class="toggle-sidebar"
@@ -243,6 +239,11 @@
     </p>
   </header>
   <div id="curr-chat-messages-holder" bind:this={chatHolder}>
+    {#if chat}
+      <div id="aviso-container" class={` ${mostrarAlerta ? "" : "hidden"}`}>
+        <div id="aviso">{alerta}</div>
+      </div>
+    {/if}
     {#each mensagens as mensagem}
       <CardMensagem {mensagem} {meuId} />
     {/each}
