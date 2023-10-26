@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-  let ws: WebSocket;
+  let ws: WebSocket | undefined;
   let infoChats: Set<Chat> = new Set();
 
   export type MensagemApi = {
@@ -58,7 +58,10 @@
     chatHolder.scrollTop = chatHolder.scrollHeight;
   }
 
-  function enviarMensagem() {
+  async function enviarMensagem() {
+    if (!ws) await setupWebSocket();
+    if (!ws) return;
+
     ws.send(mensagemEnviar);
     const dateNow = new Date().toISOString();
     addMensagem(
@@ -73,9 +76,14 @@
     mensagemEnviar = "";
   }
 
+  async function desconectar() {
+    if (!ws) return;
+    ws.close();
+    ws = undefined;
+  }
+
   async function setupWebSocket() {
     if (!chat) return;
-
     if (ws) ws.close();
 
     ws = new WebSocket(
@@ -83,6 +91,10 @@
         chat.chat_id
       }?t=GROUP`
     );
+    if (desconectado) {
+      desconectado = false;
+      mostrarAlerta = false;
+    }
     ws.addEventListener("message", (msg) => {
       const mensagem: MensagemSocket = JSON.parse(msg.data);
       console.log(mensagem);
@@ -94,11 +106,14 @@
       else if (mensagem.message_type === "DISCONNECTED") {
         // TODO: utilizar mensagem deslogada
         mostrarAlerta = true;
+        desconectado = true;
       }
     });
     ws.addEventListener("close", () => {
       console.log("desconectado");
+      alerta = "Você foi desconectado";
       mostrarAlerta = true;
+      desconectado = true;
     });
   }
 
@@ -146,6 +161,7 @@
   export let meuId: number;
   export let chat: Chat | undefined;
   let loading = false;
+  let desconectado = false;
   let alerta = "Carregando mensagens...";
   let mostrarAlerta = true;
   let chatHolder: HTMLDivElement;
@@ -234,6 +250,12 @@
       </div>
     </button>
 
+    <!-- <button
+      on:click={() => {
+        desconectar();
+      }}>Desconectar</button
+    > -->
+
     <p id="curr-chat-online-holder">
       {#if contagemOnline > 0}
         <span id="curr-chat-online-count">{contagemOnline}</span> Online
@@ -243,7 +265,18 @@
   <div id="curr-chat-messages-holder" bind:this={chatHolder}>
     {#if chat}
       <div id="aviso-container" class={` ${mostrarAlerta ? "" : "hidden"}`}>
-        <div id="aviso">{alerta}</div>
+        <div id="aviso-chat">
+          {alerta}
+          {#if desconectado}
+            <div id="aviso-botoes">
+              <button
+                on:click={() => {
+                  setupWebSocket();
+                }}>Reconectar</button
+              >
+            </div>
+          {/if}
+        </div>
       </div>
     {/if}
     {#each mensagens as mensagem}
