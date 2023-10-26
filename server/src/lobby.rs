@@ -101,19 +101,33 @@ impl Lobby {
 //     }
 // }
 
+pub struct ChannelDeleted {
+    pub user_id: i64,
+    pub room_id: String,
+}
+
+// impl Handler<ChannelDeleted> for Lobby {
+//     type Result;
+
+//     fn handle(&mut self, msg: ChannelDeleted, ctx: &mut Self::Context) -> Self::Result {
+
+//     }
+// }
+
 impl Handler<ClientActorMessage> for Lobby {
     type Result = ();
 
     fn handle(&mut self, msg: ClientActorMessage, _: &mut Self::Context) -> Self::Result {
         let db = self.db.lock().unwrap();
-        let Ok(res) = db.insert_message(InsertChatMessage {
+        if let Err(err) = db.insert_message(InsertChatMessage {
             chat_id: msg.room_id.to_string(),
             date_created: format_date(Utc::now()),
             message: &msg.msg,
             user_id: msg.id,
-        }) else {
-            std::mem::forget(db);
-            panic!("Error sending message {:?}", msg)
+        }) {
+            log::error!("Error sending message to db {:?}", msg);
+            // self.send_message(ChannelDeleted, target_id)
+            return ();
         };
         self.rooms
             .get(&msg.room_id)
