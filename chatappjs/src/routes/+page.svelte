@@ -106,7 +106,7 @@
     <section id="chats" class={`${$sidebarAtivada ? "" : "hidden"}`}>
       <header id="chats-header" class="section-header">
         <button
-          class="open-sidebar"
+          class="toggle-sidebar"
           style="position: absolute; left: 1rem;"
           on:click={() => {
             sidebarAtivada.update((ultimoValor) => !ultimoValor);

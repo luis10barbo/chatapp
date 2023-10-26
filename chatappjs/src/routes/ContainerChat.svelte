@@ -211,13 +211,15 @@
     </div>
   {/if}
   <header id="curr-chat-header" class="section-header">
-    <button
-      class="toggle-sidebar"
-      on:click={() => {
-        sidebarAtivada.update((ultimoValor) => !ultimoValor);
-      }}
-      >Menu
-    </button>
+    {#if !$sidebarAtivada}
+      <button
+        class="toggle-sidebar"
+        on:click={() => {
+          sidebarAtivada.update((ultimoValor) => !ultimoValor);
+        }}
+        >Menu
+      </button>
+    {/if}
 
     <button
       id="curr-chat-desc"

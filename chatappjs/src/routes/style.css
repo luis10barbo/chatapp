@@ -286,13 +286,26 @@ button:hover {
   width: 100%;
 
   transition: 150ms;
-  max-width: max-content;
+  max-width: 350px;
   min-width: 0;
+
+  overflow: hidden;
+  white-space: nowrap;
+  z-index: 30;
 }
 
 #chats.hidden {
-  max-width: 0;
-  display: none;
+  max-width: 0%;
+  /* display: none; */
+}
+
+.toggle-sidebar {
+  transition: 150ms;
+}
+
+#chats.hidden .toggle-sidebar {
+  opacity: 0%;
+  pointer-events: none;
 }
 
 #chats-holder {
@@ -435,6 +448,9 @@ button:hover {
     height: 100%;
     box-shadow: 3px 0px 4px 1px rgba(29, 29, 29, 0.15);
     min-width: 100%;
+  }
+  #chats.hidden {
+    min-width: 0%;
   }
   #page-shadow {
     position: absolute;
