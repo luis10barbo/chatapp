@@ -13,6 +13,9 @@
   export async function selectChat(chat: Chat) {
     localStorage.setItem(TAG_ULTIMO_CHAT_ID, chat.chat_id.toString());
     selectedChat.set(chat);
+    if (window.innerWidth < 700) {
+      sidebarAtivada.set(false);
+    }
   }
 
   export async function selectLastChat(chats: Chat[]) {
