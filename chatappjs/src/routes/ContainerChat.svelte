@@ -124,7 +124,7 @@
     await setupWebSocket();
     mostrarAlerta = false;
     setTimeout(() => {
-      loading = false;
+      // loading = false;
     }, 100);
   });
 
@@ -145,7 +145,7 @@
 
   export let meuId: number;
   export let chat: Chat | undefined;
-  let loading = true;
+  let loading = false;
   let alerta = "Carregando mensagens...";
   let mostrarAlerta = true;
   let chatHolder: HTMLDivElement;
