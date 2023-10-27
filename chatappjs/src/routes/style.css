@@ -392,6 +392,15 @@ button:hover {
   pointer-events: none;
 }
 
+#perfil-botoes-adm {
+  display: flex;
+  gap: var(--small-padding);
+}
+
+#perfil-botoes-adm > button {
+  width: 100%;
+}
+
 #perfil-chat {
   /* position: absolute; */
   display: flex;

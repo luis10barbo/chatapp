@@ -32,6 +32,7 @@
   } from "./ContainerChatSelector.svelte";
   import { parseDataDB } from "../utils/date";
   import HeightTransition from "$lib/utils/components/HeightTransition.svelte";
+  import { writable } from "svelte/store";
 
   async function addMensagem(mensagem: MensagemSocket, atualizarChat: boolean) {
     if (!chat) return;
@@ -193,6 +194,24 @@
     }
   }
 
+  async function atualizarChat() {
+    if (!tituloModificado && !descricaoModificada && !chat) return;
+    console.log(tituloModificado, descricaoModificada);
+    const chatModificado = {
+      ...chat,
+      chat_name: tituloModificado,
+      chat_desc: descricaoModificada,
+    } as Chat;
+
+    const res = await postJson(
+      window.location.protocol + "//" + PUBLIC_URL_BACKEND + "/chat/update",
+      chatModificado
+    );
+    if (res.status !== 200) return;
+
+    chat = chatModificado;
+  }
+
   export let meuId: number;
   export let chat: Chat | undefined;
   let loading = false;
@@ -212,6 +231,10 @@
     id: number;
     date: string;
   };
+
+  let tituloModificado = chat?.chat_name;
+  let descricaoModificada = chat?.chat_desc;
+  let eDonoChat = chat?.creator_id === meuId;
 </script>
 
 <section id="curr-chat" class={`${loading ? "notransition" : ""}`}>
@@ -222,18 +245,35 @@
           <!-- {JSON.stringify(chat)} -->
           <header id="perfil-chat-header">
             <img id="img-curr-chat" />
-            <div id="perfil-titulo-holder">
-              <p id="perfil-chat-titulo">{chat.chat_name}</p>
-            </div>
+            {#if !eDonoChat}
+              <div id="perfil-titulo-holder">
+                <p id="perfil-chat-titulo">{chat.chat_name}</p>
+              </div>
+            {:else}
+              <input
+                type="text"
+                placeholder="Sem titulo"
+                bind:value={tituloModificado}
+              />
+            {/if}
             <button
               on:click={() => {
                 mostrarPerfil = false;
               }}>Fechar</button
             >
           </header>
-          <p id="perfil-chat-desc">
-            {chat.chat_desc ? chat.chat_desc : "Sem descricao"}
-          </p>
+          {#if !eDonoChat}
+            <p id="perfil-chat-desc">
+              {chat.chat_desc ? chat.chat_desc : "Sem descricao"}
+            </p>
+          {:else}
+            <input
+              type="text"
+              placeholder="Descrição"
+              bind:value={descricaoModificada}
+            />
+          {/if}
+
           <p id="perfil-data-criada">
             Criado em {chat.date_created} <br /> por
             <button
@@ -253,12 +293,19 @@
               }}><b>{chat.creator?.user_nick}</b></button
             >
           </p>
-          {#if chat?.creator_id === meuId}
-            <button
-              on:click={async () => {
-                apagarChat();
-              }}>Apagar</button
-            >
+          {#if eDonoChat}
+            <div id="perfil-botoes-adm">
+              <button
+                on:click={async () => {
+                  apagarChat();
+                }}>Apagar</button
+              >
+              <button
+                on:click={async () => {
+                  atualizarChat();
+                }}>Atualizar</button
+              >
+            </div>
           {/if}
           <section id="perfil-aba-participantes">
             <p>Participantes</p>

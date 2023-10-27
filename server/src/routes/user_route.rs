@@ -41,6 +41,7 @@ pub fn user_scope() -> Scope {
         .service(my_user_info)
         .service(rota_sair)
         .service(user_info)
+        .service(rota_update)
 }
 
 #[derive(Debug, Deserialize)]

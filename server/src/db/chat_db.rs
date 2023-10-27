@@ -134,13 +134,15 @@ impl ChatTable for Database {
     }
 
     fn update_chat(&self, chat: Chat) -> Result<usize, rusqlite::Error> {
-        let mut stmt = self.conn.prepare("UPDATE chat SET chat_name = ?, chat_desc = ?, chat_image = ? WHERE chat_id = ? AND user_id = ?")?;
-        stmt.execute(params![
+        let mut stmt = self.conn.prepare("UPDATE chats SET chat_name = ?, chat_desc = ?, chat_image = ? WHERE chat_id = ? AND user_id = ?")?;
+        let res = stmt.execute(params![
             chat.chat_name,
             chat.chat_desc,
             chat.chat_image,
             chat.chat_id,
             chat.creator_id
-        ])
+        ]);
+        println!("{:?}", stmt.expanded_sql());
+        res
     }
 }

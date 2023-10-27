@@ -32,6 +32,7 @@ pub fn chat_scope() -> Scope {
         .service(get_messages)
         .service(remove_chat)
         .service(get_chat_router)
+        .service(rota_update)
 }
 
 #[get("/auth")]
@@ -290,6 +291,8 @@ async fn rota_update(
     app_ctx: Data<AppContext>,
     chat: Json<Chat>,
 ) -> impl Responder {
+    println!("{:?}", chat);
+
     let user_id = get_user_id(&session);
     let RespostaAdquirirIdSessao::Id(user_id) = user_id else {
         let RespostaAdquirirIdSessao::Erro(err) = user_id else {
@@ -326,5 +329,5 @@ async fn rota_update(
         return HttpResponse::NotModified().body("Nada modificado");
     }
 
-    HttpResponse::Ok().body("")
+    HttpResponse::Ok().body(format!("{:?}", modified))
 }
