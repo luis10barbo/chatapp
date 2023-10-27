@@ -9,6 +9,8 @@ pub enum MessageType {
     ID,
     INIT,
     DISCONNECTED,
+    CHAT_UNAVAILABLE,
+    CHAT_DELETED,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

@@ -102,19 +102,31 @@
     ws.addEventListener("message", (msg) => {
       const mensagem: MensagemSocket = JSON.parse(msg.data);
       console.log(mensagem);
-      if (mensagem.message_type === "TEXT") addMensagem(mensagem, true);
-      else if (mensagem.message_type === "JOIN") contagemOnline++;
-      else if (mensagem.message_type === "LEAVE") contagemOnline--;
-      else if (mensagem.message_type === "INIT")
-        contagemOnline = Number.parseInt(mensagem.message);
-      else if (mensagem.message_type === "DISCONNECTED") {
-        // TODO: utilizar mensagem deslogada
-        mostrarAlerta = true;
-        desconectado = true;
+      switch (mensagem.message_type) {
+        case "TEXT":
+          addMensagem(mensagem, true);
+          break;
+        case "JOIN":
+          contagemOnline++;
+          break;
+        case "LEAVE":
+          contagemOnline--;
+          break;
+        case "INIT":
+          contagemOnline = Number.parseInt(mensagem.message);
+          break;
+        case "DISCONNECTED":
+          mostrarAlerta = true;
+          desconectado = true;
+          break;
+        case "CHAT_DELETED":
+          if (!chat) break;
+          removerChat(chat);
+          selectChat(undefined);
+          break;
       }
     });
     ws.addEventListener("close", () => {
-      console.log("desconectado");
       alerta = "Você foi desconectado";
       mostrarAlerta = true;
       desconectado = true;

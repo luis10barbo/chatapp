@@ -100,10 +100,10 @@ impl Lobby {
 //         }
 //     }
 // }
-
-pub struct ChannelDeleted {
-    pub user_id: i64,
-    pub room_id: String,
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct ChatDeleted {
+    pub chat_id: String,
 }
 
 // impl Handler<ChannelDeleted> for Lobby {
@@ -113,6 +113,30 @@ pub struct ChannelDeleted {
 
 //     }
 // }
+
+impl Handler<ChatDeleted> for Lobby {
+    type Result = ();
+
+    fn handle(&mut self, msg: ChatDeleted, ctx: &mut Self::Context) -> Self::Result {
+        let Some(room) = self.rooms.get(&msg.chat_id) else {
+            log::error!("Chat não encontrado.");
+            return ();
+        };
+        room.iter().for_each(|conn_id| {
+            self.send_message(
+                SocketMessage {
+                    message_type: crate::message::MessageType::CHAT_DELETED,
+                    message: format!("Chat {:?} deletado.", msg.chat_id),
+                    id: None,
+                    date: format_date(Utc::now()),
+                },
+                conn_id,
+            )
+        });
+        self.rooms.remove(&msg.chat_id);
+        ()
+    }
+}
 
 impl Handler<ClientActorMessage> for Lobby {
     type Result = ();
@@ -125,7 +149,18 @@ impl Handler<ClientActorMessage> for Lobby {
             message: &msg.msg,
             user_id: msg.id,
         }) {
-            log::error!("Error sending message to db {:?}", msg);
+            log::error!("Error sending message to db {:?}", err);
+            if let Some(code) = err.sqlite_error_code() {
+                self.send_message(
+                    SocketMessage {
+                        message_type: crate::message::MessageType::CHAT_DELETED,
+                        message: format!("Chat {:?} foi deletado!", msg.room_id),
+                        id: None,
+                        date: format_date(Utc::now()),
+                    },
+                    &msg.id,
+                );
+            }
             // self.send_message(ChannelDeleted, target_id)
             return ();
         };

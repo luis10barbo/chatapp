@@ -13,6 +13,7 @@ use crate::{
         chat_db::{ChatTable, ChatTypes},
         chat_message_db::ChatMessagesTable,
     },
+    lobby::ChatDeleted,
     routes::user_route::RespostaAdquirirIdSessao,
     sockets::chat::socket::ChatWs,
     AppContext,
@@ -226,6 +227,16 @@ pub async fn remove_chat(
         log::error!("{:?}", err);
         return HttpResponse::InternalServerError().body("Erro ao deletar chat");
     };
+
+    if let Err(err) = app_ctx
+        .chat_server
+        .send(ChatDeleted {
+            chat_id: body.chat_id.clone(),
+        })
+        .await
+    {
+        log::error!("Error sending message to user: {:?}", err)
+    }
 
     HttpResponse::Ok().body(format!("Chat {} deletado", body.chat_id))
 }
