@@ -24,6 +24,11 @@
         return novoChat;
       });
     });
+
+    chatCtx.update((chat) => {
+      if (chat?.chat_id === novoChat.chat_id) return novoChat;
+      return chat;
+    });
   }
 
   export async function adicionarChat(idChat: string) {
@@ -92,7 +97,7 @@
     type Usuario,
   } from "./+page.svelte";
   import ChatCard from "./ChatCard.svelte";
-  import type { MensagemApi } from "./ContainerChat.svelte";
+  import { chatCtx, type MensagemApi } from "./ContainerChat.svelte";
   import { onMount } from "svelte";
 
   let chatName = "";

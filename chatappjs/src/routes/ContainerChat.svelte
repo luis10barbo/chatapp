@@ -9,6 +9,8 @@
     user_id: number;
     user?: Usuario;
   };
+
+  export let chatCtx: Writable<Chat | undefined> = writable(undefined);
 </script>
 
 <script lang="ts">
@@ -20,6 +22,7 @@
   import {
     cachedUsers,
     getUser,
+    requestUser,
     selectChat,
     sidebarAtivada,
     type Usuario,
@@ -32,10 +35,10 @@
   } from "./ContainerChatSelector.svelte";
   import { parseDataDB } from "../utils/date";
   import HeightTransition from "$lib/utils/components/HeightTransition.svelte";
-  import { writable } from "svelte/store";
+  import { writable, type Writable } from "svelte/store";
 
   async function addMensagem(mensagem: MensagemSocket, atualizarChat: boolean) {
-    if (!chat) return;
+    if (!$chatCtx) return;
 
     const usuario = await getUser(mensagem.id);
     const novaMensagem = {
@@ -46,13 +49,13 @@
       id: "",
     };
     mensagens = [...mensagens, novaMensagem];
-    chat.last_message = {
+    $chatCtx.last_message = {
       date_created: mensagem.date,
       id: novaMensagem.id,
       message: novaMensagem.mensagem,
       user_id: novaMensagem.idUsuario,
     };
-    modificarChat(chat);
+    modificarChat($chatCtx);
 
     await tick();
     await tick();
@@ -87,20 +90,49 @@
     ws = undefined;
   }
 
+  async function addUsers(userIds: Usuario["user_id"][]) {
+    const users = new Map();
+    for (const key in userIds) {
+      const userId = userIds[key];
+      const user = (await requestUser(userId)) as Usuario;
+      users.set(userId, users);
+      // onlineUsers.set(key, );
+    }
+    console.log("wanga", users);
+    onlineUsers.set(users);
+  }
+
+  async function addUser(userId: Usuario["user_id"]) {
+    const user = await requestUser(userId);
+    if (!user) return;
+
+    onlineUsers.update((onlineUsers) => {
+      if (onlineUsers) onlineUsers.set(userId, user);
+      return onlineUsers;
+    });
+  }
+
+  async function removeUser(userId: Usuario["user_id"]) {
+    onlineUsers.update((onlineUsers) => {
+      if (onlineUsers) onlineUsers.delete(userId);
+      return onlineUsers;
+    });
+  }
+
   async function setupWebSocket() {
-    if (!chat) return;
+    if (!$chatCtx) return;
     if (ws) ws.close();
 
     ws = new WebSocket(
       `${adquirirProtocoloWS()}//${PUBLIC_URL_BACKEND}/chat/connect/${
-        chat.chat_id
+        $chatCtx.chat_id
       }?t=GROUP`
     );
     if (desconectado) {
       desconectado = false;
       mostrarAlerta = false;
     }
-    ws.addEventListener("message", (msg) => {
+    ws.addEventListener("message", async (msg) => {
       const mensagem: MensagemSocket = JSON.parse(msg.data);
       console.log(mensagem);
       switch (mensagem.message_type) {
@@ -108,21 +140,21 @@
           addMensagem(mensagem, true);
           break;
         case "JOIN":
-          contagemOnline++;
+          addUser(mensagem.id);
           break;
         case "LEAVE":
-          contagemOnline--;
+          removeUser(mensagem.id);
           break;
         case "INIT":
-          contagemOnline = Number.parseInt(mensagem.message);
+          addUsers(JSON.parse(mensagem.message));
           break;
         case "DISCONNECTED":
           mostrarAlerta = true;
           desconectado = true;
           break;
         case "CHAT_DELETED":
-          if (!chat) break;
-          removerChat(chat);
+          if (!$chatCtx) break;
+          removerChat($chatCtx);
           selectChat(undefined);
           break;
       }
@@ -135,10 +167,10 @@
   }
 
   async function getMessages(offset: number) {
-    if (!chat) return;
+    if (!$chatCtx) return;
 
     const res = await getJson(
-      `${window.location.protocol}//${PUBLIC_URL_BACKEND}/chat/messages/${chat.chat_id}?offset=${offset}`
+      `${window.location.protocol}//${PUBLIC_URL_BACKEND}/chat/messages/${$chatCtx.chat_id}?offset=${offset}`
     );
     if (res.status !== 200) {
       return;
@@ -154,9 +186,9 @@
 
   onMount(async () => {
     const messages = await getMessages(0);
-    if (chat && messages) {
-      chat.last_message = messages.at(0);
-      modificarChat(chat);
+    if ($chatCtx && messages) {
+      $chatCtx.last_message = messages.at(0);
+      modificarChat($chatCtx);
     }
     await setupWebSocket();
     mostrarAlerta = false;
@@ -181,24 +213,24 @@
   }
 
   async function apagarChat() {
-    if (!chat) return;
+    if (!$chatCtx) return;
     const res = await postJson(
       window.location.protocol + "//" + PUBLIC_URL_BACKEND + "/chat/remove",
       {
-        chat_id: chat.chat_id,
+        chat_id: $chatCtx.chat_id,
       }
     );
     if (res.status === 200) {
-      removerChat(chat);
+      removerChat($chatCtx);
       selectChat(undefined);
     }
   }
 
   async function atualizarChat() {
-    if (!tituloModificado && !descricaoModificada && !chat) return;
+    if (!tituloModificado && !descricaoModificada && !$chatCtx) return;
     console.log(tituloModificado, descricaoModificada);
     const chatModificado = {
-      ...chat,
+      ...$chatCtx,
       chat_name: tituloModificado,
       chat_desc: descricaoModificada,
     } as Chat;
@@ -209,12 +241,13 @@
     );
     if (res.status !== 200) return;
 
-    chat = chatModificado;
-    modificarChat(chat);
+    $chatCtx = chatModificado;
+    modificarChat($chatCtx);
   }
 
   export let meuId: number;
   export let chat: Chat | undefined;
+  chatCtx.set(chat);
   let loading = false;
   let desconectado = false;
   let alerta = "Carregando mensagens...";
@@ -222,7 +255,12 @@
   let chatHolder: HTMLDivElement;
 
   let mensagens: Mensagem[] = [];
-  let contagemOnline = 0;
+  let onlineUsers: Writable<Map<Usuario["user_id"], Usuario> | undefined> =
+    writable(undefined);
+  onlineUsers.subscribe((onlineUsers) => {
+    console.log("awwagerson", onlineUsers);
+  });
+  let onlineUsersMap: Usuario[] = [];
   let mensagemEnviar = "";
   let mostrarPerfil = false;
 
@@ -233,22 +271,22 @@
     date: string;
   };
 
-  let tituloModificado = chat?.chat_name;
-  let descricaoModificada = chat?.chat_desc;
-  let eDonoChat = chat?.creator_id === meuId;
+  let tituloModificado = $chatCtx?.chat_name;
+  let descricaoModificada = $chatCtx?.chat_desc;
+  let eDonoChat = $chatCtx?.creator_id === meuId;
 </script>
 
 <section id="curr-chat" class={`${loading ? "notransition" : ""}`}>
-  {#if chat}
+  {#if $chatCtx}
     <div id="perfil-chat-container" class={`${mostrarPerfil ? "" : "hidden"}`}>
       <HeightTransition enabled={mostrarPerfil} timeMS={150}>
         <div id="perfil-chat">
-          <!-- {JSON.stringify(chat)} -->
+          <!-- {JSON.stringify($chatCtx)} -->
           <header id="perfil-chat-header">
             <img id="img-curr-chat" />
             {#if !eDonoChat}
               <div id="perfil-titulo-holder">
-                <p id="perfil-chat-titulo">{chat.chat_name}</p>
+                <p id="perfil-chat-titulo">{$chatCtx.chat_name}</p>
               </div>
             {:else}
               <input
@@ -265,7 +303,7 @@
           </header>
           {#if !eDonoChat}
             <p id="perfil-chat-desc">
-              {chat.chat_desc ? chat.chat_desc : "Sem descricao"}
+              {$chatCtx.chat_desc ? $chatCtx.chat_desc : "Sem descricao"}
             </p>
           {:else}
             <input
@@ -276,22 +314,22 @@
           {/if}
 
           <p id="perfil-data-criada">
-            Criado em {chat.date_created} <br /> por
+            Criado em {$chatCtx.date_created} <br /> por
             <button
               class="text-button"
               style="font-size: 12px;"
               on:click={() => {
-                if (!chat?.creator) return;
+                if (!$chatCtx?.creator) return;
                 selectChat({
                   chat_desc: "",
-                  chat_id: chat.creator.user_id,
-                  chat_name: chat.creator.user_name
-                    ? chat.creator.user_name
-                    : chat.creator.user_nick,
+                  chat_id: $chatCtx.creator.user_id,
+                  chat_name: $chatCtx.creator.user_name
+                    ? $chatCtx.creator.user_name
+                    : $chatCtx.creator.user_nick,
                   chat_type: "USER",
                   last_message: undefined,
                 });
-              }}><b>{chat.creator?.user_nick}</b></button
+              }}><b>{$chatCtx.creator?.user_nick}</b></button
             >
           </p>
           {#if eDonoChat}
@@ -335,25 +373,21 @@
     >
       <img id="img-curr-chat" />
       <div id="curr-chat-info">
-        <p>{chat ? chat.chat_name : "Nenhum chat selecionado"}</p>
+        <p>{$chatCtx ? $chatCtx.chat_name : "Nenhum $chatCtx selecionado"}</p>
         <p class="chat-status" />
       </div>
     </button>
 
-    <!-- <button
-      on:click={() => {
-        desconectar();
-      }}>Desconectar</button
-    > -->
-
     <p id="curr-chat-online-holder">
-      {#if contagemOnline > 0}
-        <span id="curr-chat-online-count">{contagemOnline}</span> Online
-      {/if}
+      {#key onlineUsers}
+        {#if $onlineUsers?.size}
+          <span id="curr-chat-online-count">{$onlineUsers.size}</span> Online
+        {/if}
+      {/key}
     </p>
   </header>
   <div id="curr-chat-messages-holder" bind:this={chatHolder}>
-    {#if chat}
+    {#if $chatCtx}
       <div id="aviso-container" class={` ${mostrarAlerta ? "" : "hidden"}`}>
         <div id="aviso-chat">
           {alerta}
@@ -374,7 +408,7 @@
     {/each}
   </div>
   <footer id="curr-chat-footer" class="section-footer">
-    {#if chat}
+    {#if $chatCtx}
       <input
         bind:value={mensagemEnviar}
         id="send-message"

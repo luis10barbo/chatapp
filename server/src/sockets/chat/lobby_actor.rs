@@ -228,10 +228,20 @@ impl Handler<Connect> for Lobby {
         self.sessions.insert(msg.id, msg.addr);
 
         println!("{:?}", self.sessions.keys());
+        let Some(room) = self.rooms.get(&msg.room_id) else {
+            return ();
+        };
+
+        let mut users_in_room: Vec<i64> = Vec::new();
+        for user_id in room {
+            users_in_room.push(*user_id);
+        }
+        println!("{:?}", users_in_room);
+
         self.send_message(
             SocketMessage {
                 message_type: crate::message::MessageType::INIT,
-                message: self.rooms.get(&msg.room_id).unwrap().len().to_string(),
+                message: serde_json::to_string(&users_in_room).unwrap(),
                 id: Some(msg.id),
                 ..Default::default()
             },
