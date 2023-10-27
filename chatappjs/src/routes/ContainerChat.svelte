@@ -210,6 +210,7 @@
     if (res.status !== 200) return;
 
     chat = chatModificado;
+    modificarChat(chat);
   }
 
   export let meuId: number;
