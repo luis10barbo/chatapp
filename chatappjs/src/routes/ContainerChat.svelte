@@ -148,10 +148,15 @@
     await tick();
     await tick();
     scrollToBottomMsgs();
+    return resMessages;
   }
 
   onMount(async () => {
-    await getMessages(0);
+    const messages = await getMessages(0);
+    if (chat && messages) {
+      chat.last_message = messages.at(0);
+      modificarChat(chat);
+    }
     await setupWebSocket();
     mostrarAlerta = false;
     setTimeout(() => {
