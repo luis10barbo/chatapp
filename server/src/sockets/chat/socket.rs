@@ -10,10 +10,9 @@ use actix::{
 use actix_web_actors::ws;
 use uuid::Uuid;
 
-use crate::{
-    db::Database,
-    lobby::{ClientActorMessage, Connect, Disconnect, Lobby, WsMessage},
-};
+use crate::db::Database;
+
+use super::lobby::{ClientActorMessage, Connect, Disconnect, Lobby, WsMessage};
 
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);

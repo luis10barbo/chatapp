@@ -1,9 +1,8 @@
 pub mod db;
-mod lobby;
 pub mod logger;
 pub mod message;
 pub mod routes;
-pub mod socket;
+pub mod sockets;
 
 use std::{
     collections::HashMap,
@@ -21,9 +20,9 @@ use actix_web::{
     App, HttpResponse, HttpServer, Responder,
 };
 use db::Database;
-use lobby::Lobby;
 use logger::setup_logger;
 use routes::{chat_route::chat_scope, user_route::user_scope};
+use sockets::chat::lobby::Lobby;
 use uuid::Uuid;
 
 pub struct AppContext {

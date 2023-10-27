@@ -14,7 +14,7 @@ use crate::{
         chat_message_db::ChatMessagesTable,
     },
     routes::user_route::RespostaAdquirirIdSessao,
-    socket::ChatWs,
+    sockets::chat::socket::ChatWs,
     AppContext,
 };
 
