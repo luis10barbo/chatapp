@@ -1,5 +1,5 @@
 use rusqlite::params;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::Database;
@@ -15,7 +15,7 @@ pub const CHAT_MESSAGES_TABLE_SQL: &str = "CREATE TABLE IF NOT EXISTS chat_messa
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );";
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ChatMessage {
     pub id: String,
     pub message: String,

@@ -10,7 +10,7 @@ use uuid::Uuid;
 
 use crate::{
     db::{
-        chat_db::{ChatTable, ChatTypes},
+        chat_db::{Chat, ChatTable, ChatTypes},
         chat_message_db::ChatMessagesTable,
     },
     routes::user_route::RespostaAdquirirIdSessao,
@@ -282,4 +282,49 @@ pub async fn remove_chat(
     };
 
     HttpResponse::Ok().body(format!("Chat {} deletado", body.chat_id))
+}
+
+#[post("/update")]
+async fn rota_update(
+    session: Session,
+    app_ctx: Data<AppContext>,
+    chat: Json<Chat>,
+) -> impl Responder {
+    let user_id = get_user_id(&session);
+    let RespostaAdquirirIdSessao::Id(user_id) = user_id else {
+        let RespostaAdquirirIdSessao::Erro(err) = user_id else {
+            panic!();
+        };
+        return err;
+    };
+    let Ok(db) = app_ctx.db.lock() else {
+        log::error!("Error getting db, maybe it's poisoned?");
+        return HttpResponse::InternalServerError().body("Erro adquirindo db.");
+    };
+
+    if chat.creator_id != user_id {
+        return HttpResponse::Unauthorized().body("Você só pode modificar suas informações.");
+    }
+
+    let res = db.update_chat(Chat {
+        chat_desc: chat.chat_desc.clone(),
+        chat_id: chat.chat_id.clone(),
+        chat_image: chat.chat_image.clone(),
+        chat_name: chat.chat_name.clone(),
+        date_created: chat.date_created.clone(),
+        chat_type: chat.chat_type,
+        creator_id: chat.creator_id,
+        last_message: None,
+    });
+    let Ok(modified) = res else {
+        let err = res.unwrap_err();
+        log::error!("{:?}", err);
+        return HttpResponse::InternalServerError().body("Erro ao atualizar usuario.");
+    };
+
+    if modified < 1 {
+        return HttpResponse::NotModified().body("Nada modificado");
+    }
+
+    HttpResponse::Ok().body("")
 }

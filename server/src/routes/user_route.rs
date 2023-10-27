@@ -1,14 +1,17 @@
 use actix_session::Session;
 use actix_web::{
     get, post,
-    web::Query,
     web::{self, Data},
+    web::{Json, Query},
     HttpResponse, Responder, Scope,
 };
 use rusqlite::ErrorCode;
 use serde::Deserialize;
 
-use crate::{db::user_db::UserTable, AppContext};
+use crate::{
+    db::user_db::{User, UserTable},
+    AppContext,
+};
 
 pub trait UserSession {
     fn insert_user_id(&self, user_id: i64) -> Result<(), HttpResponse>;
@@ -176,4 +179,47 @@ async fn rota_sair(session: Session) -> impl Responder {
 
     session.remove(USER_ID_KEY);
     HttpResponse::Ok().body("Deslogado com sucesso!")
+}
+
+#[post("/update")]
+async fn rota_update(
+    session: Session,
+    app_ctx: Data<AppContext>,
+    user: Json<User>,
+) -> impl Responder {
+    let user_id = get_user_id(&session);
+    let RespostaAdquirirIdSessao::Id(user_id) = user_id else {
+        let RespostaAdquirirIdSessao::Erro(err) = user_id else {
+            panic!();
+        };
+        return err;
+    };
+    let Ok(db) = app_ctx.db.lock() else {
+        log::error!("Error getting db, maybe it's poisoned?");
+        return HttpResponse::InternalServerError().body("Erro adquirindo db.");
+    };
+
+    if (user.user_id != user_id) {
+        return HttpResponse::Unauthorized().body("Você só pode modificar suas informações.");
+    }
+
+    let res = db.update_user(User {
+        user_id: user.user_id,
+        user_nick: user.user_nick.clone(),
+        user_name: user.user_name.clone(),
+        user_status: user.user_status.clone(),
+        user_email: user.user_email.clone(),
+        user_image: user.user_image.clone(),
+    });
+    let Ok(modified) = res else {
+        let err = res.unwrap_err();
+        log::error!("{:?}", err);
+        return HttpResponse::InternalServerError().body("Erro ao atualizar usuario.");
+    };
+
+    if modified < 1 {
+        return HttpResponse::NotModified().body("Nada modificado");
+    }
+
+    HttpResponse::Ok().body("")
 }

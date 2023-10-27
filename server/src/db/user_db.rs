@@ -14,17 +14,19 @@ pub const USER_TABLE_SQL: &str = "CREATE TABLE IF NOT EXISTS users (
     password_salt VARCHAR(32) NOT NULL,
     user_name VARCHAR(32),
     user_status VARCHAR(64) DEFAULT \"\",
-    user_email VARCHAR(64)
+    user_email VARCHAR(64),
+    user_image TEXT
     
 );";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {
-    pub user_id: i32,
+    pub user_id: i64,
     pub user_nick: String,
     pub user_name: Option<String>,
     pub user_status: Option<String>,
     pub user_email: Option<String>,
+    pub user_image: Option<String>,
 }
 
 pub trait UserTable {
@@ -37,6 +39,7 @@ pub trait UserTable {
     ) -> Result<Option<i64>, rusqlite::Error>;
 
     fn get_user(&self, id: i64) -> Result<User, rusqlite::Error>;
+    fn update_user(&self, user: User) -> Result<usize, rusqlite::Error>;
 }
 
 impl UserTable for Database {
@@ -85,7 +88,7 @@ impl UserTable for Database {
     }
 
     fn get_user(&self, id: i64) -> Result<User, rusqlite::Error> {
-        let mut stmt = self.conn.prepare("SELECT user_id, user_nick, user_name, user_status, user_email FROM users WHERE user_id = ? LIMIT 1")?;
+        let mut stmt = self.conn.prepare("SELECT user_id, user_nick, user_name, user_status, user_email, user_image FROM users WHERE user_id = ? LIMIT 1")?;
         let user: User = stmt.query_row(params![id], |row| {
             Ok(User {
                 user_id: row.get(0)?,
@@ -93,8 +96,20 @@ impl UserTable for Database {
                 user_name: row.get(2)?,
                 user_status: row.get(3)?,
                 user_email: row.get(4)?,
+                user_image: row.get(5)?,
             })
         })?;
         Ok(user)
+    }
+    fn update_user(&self, user: User) -> Result<usize, rusqlite::Error> {
+        let mut stmt = self.conn.prepare("UPDATE users SET user_nick=?, user_name=?, user_status=?, user_email=?, user_image=? WHERE user_id=?")?;
+        stmt.execute(params![
+            user.user_nick,
+            user.user_name,
+            user.user_status,
+            user.user_email,
+            user.user_image,
+            user.user_id
+        ])
     }
 }

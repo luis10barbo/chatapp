@@ -16,6 +16,7 @@ pub const CHAT_TABLE_SQL: &str = "CREATE TABLE IF NOT EXISTS chats (
     chat_name VARCHAR(32) NOT NULL DEFAULT \"\",
     chat_desc VARCHAR(512) DEFAULT \"\",
     date_created VARCHAR(32),
+    chat_image TEXT,
     
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );";
@@ -33,21 +34,23 @@ pub enum ChatTypes {
     GROUP,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Chat {
-    chat_id: String,
-    creator_id: i64,
-    chat_name: String,
-    chat_desc: String,
-    date_created: String,
-    chat_type: ChatTypes,
-    last_message: Option<ChatMessage>,
+    pub chat_id: String,
+    pub creator_id: i64,
+    pub chat_name: String,
+    pub chat_desc: String,
+    pub date_created: String,
+    pub chat_image: Option<String>,
+    pub chat_type: ChatTypes,
+    pub last_message: Option<ChatMessage>,
 }
 pub trait ChatTable {
     fn create_chat(&self, nome: &str, id_usuario: i64) -> Result<String, rusqlite::Error>;
     fn get_chats(&self) -> Result<Vec<Chat>, rusqlite::Error>;
     fn get_chat(&self, chat_id: &str, t: ChatTypes) -> Result<Chat, rusqlite::Error>;
     fn remove_chat(&self, chat_id: &str) -> Result<usize, rusqlite::Error>;
+    fn update_chat(&self, chat: Chat) -> Result<usize, rusqlite::Error>;
 }
 
 impl ChatTable for Database {
@@ -60,15 +63,15 @@ impl ChatTable for Database {
             uuid.to_string(),
             nome,
             id_usuario,
-            format_date(Utc::now())
+            format_date(Utc::now()),
         ])?;
         Ok(uuid.to_string())
     }
     fn get_chats(&self) -> Result<Vec<Chat>, rusqlite::Error> {
         let mut chats: Vec<Chat> = Vec::new();
-        let mut stmt = self
-            .conn
-            .prepare("SELECT chat_id, chat_name, chat_desc, user_id, date_created FROM chats")?;
+        let mut stmt = self.conn.prepare(
+            "SELECT chat_id, chat_name, chat_desc, user_id, date_created, chat_image FROM chats",
+        )?;
         let rows = stmt.query_map((), |row| {
             Ok(Chat {
                 chat_id: row.get(0)?,
@@ -76,6 +79,7 @@ impl ChatTable for Database {
                 chat_desc: row.get(2)?,
                 creator_id: row.get(3)?,
                 date_created: row.get(4)?,
+                chat_image: row.get(5)?,
                 chat_type: ChatTypes::GROUP,
                 last_message: None,
             })
@@ -103,7 +107,7 @@ impl ChatTable for Database {
     fn get_chat(&self, chat_id: &str, _: ChatTypes) -> Result<Chat, rusqlite::Error> {
         let mut stmt = self
             .conn
-            .prepare("SELECT chat_id, chat_name, chat_desc, user_id, date_created FROM chats WHERE chat_id = ? LIMIT 1")?;
+            .prepare("SELECT chat_id, chat_name, chat_desc, user_id, date_created, chat_image FROM chats WHERE chat_id = ? LIMIT 1")?;
         let res = stmt.query_row(params![chat_id.to_string()], |row| {
             Ok(Chat {
                 chat_id: row.get(0)?,
@@ -111,6 +115,7 @@ impl ChatTable for Database {
                 chat_desc: row.get(2)?,
                 creator_id: row.get(3)?,
                 date_created: row.get(4)?,
+                chat_image: row.get(5)?,
                 chat_type: ChatTypes::GROUP,
                 last_message: None,
             })
@@ -126,5 +131,16 @@ impl ChatTable for Database {
             .execute(params![chat_id])?;
         log::debug!("{:?}", res);
         Ok(res)
+    }
+
+    fn update_chat(&self, chat: Chat) -> Result<usize, rusqlite::Error> {
+        let mut stmt = self.conn.prepare("UPDATE chat SET chat_name = ?, chat_desc = ?, chat_image = ? WHERE chat_id = ? AND user_id = ?")?;
+        stmt.execute(params![
+            chat.chat_name,
+            chat.chat_desc,
+            chat.chat_image,
+            chat.chat_id,
+            chat.creator_id
+        ])
     }
 }

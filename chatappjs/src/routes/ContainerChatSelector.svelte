@@ -13,7 +13,7 @@
   let chats: Writable<Chat[] | undefined> = writable(undefined);
 
   export async function modificarChat(novoChat: Chat) {
-    if (novoChat.last_message)
+    if (novoChat?.last_message)
       novoChat.last_message.user = await requestUser(
         novoChat.last_message.user_id
       );
