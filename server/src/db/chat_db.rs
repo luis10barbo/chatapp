@@ -1,5 +1,5 @@
 use chrono::Utc;
-use rusqlite::{params, ErrorCode};
+use rusqlite::params;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -100,7 +100,7 @@ impl ChatTable for Database {
         }
         Ok(chats)
     }
-    fn get_chat(&self, chat_id: &str, t: ChatTypes) -> Result<Chat, rusqlite::Error> {
+    fn get_chat(&self, chat_id: &str, _: ChatTypes) -> Result<Chat, rusqlite::Error> {
         let mut stmt = self
             .conn
             .prepare("SELECT chat_id, chat_name, chat_desc, user_id, date_created FROM chats WHERE chat_id = ? LIMIT 1")?;

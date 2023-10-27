@@ -1,7 +1,6 @@
 use std::time::Duration;
 
 use actix::Message;
-use serde::{Deserialize, Serialize};
 
 pub mod chat;
 pub mod info;

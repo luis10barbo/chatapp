@@ -1,7 +1,4 @@
-use std::{
-    sync::{Arc, Mutex},
-    time::Instant,
-};
+use std::time::Instant;
 
 use actix::{
     fut, prelude::ContextFutureSpawner, Actor, ActorContext, ActorFutureExt, Addr, AsyncContext,
@@ -9,10 +6,7 @@ use actix::{
 };
 use actix_web_actors::ws;
 
-use crate::{
-    db::Database,
-    sockets::{WsMessage, CLIENT_TIMEOUT, HEARTBEAT_INTERVAL},
-};
+use crate::sockets::{WsMessage, CLIENT_TIMEOUT, HEARTBEAT_INTERVAL};
 
 use super::lobby_actor::{ClientActorMessage, Connect, Disconnect, Lobby};
 

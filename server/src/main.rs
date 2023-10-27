@@ -15,14 +15,13 @@ use actix_cors::Cors;
 use actix_session::{config::PersistentSession, storage::CookieSessionStore, SessionMiddleware};
 use actix_web::{
     cookie::{time::Duration, Key},
-    get,
     web::Data,
-    App, HttpResponse, HttpServer, Responder,
+    App, HttpServer,
 };
 use db::Database;
 use logger::setup_logger;
 use routes::{
-    base_route::{base_scope, index_route, info_route},
+    base_route::{index_route, info_route},
     chat_route::chat_scope,
     user_route::user_scope,
 };
