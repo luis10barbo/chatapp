@@ -13,9 +13,8 @@ use crate::{
         chat_db::{ChatTable, ChatTypes},
         chat_message_db::ChatMessagesTable,
     },
-    lobby::ChatDeleted,
     routes::user_route::RespostaAdquirirIdSessao,
-    sockets::chat::socket::ChatWs,
+    sockets::chat::{lobby::ChatDeleted, socket::ChatWs},
     AppContext,
 };
 
