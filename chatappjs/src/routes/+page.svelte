@@ -63,15 +63,30 @@
 <script lang="ts">
   import "./style.css";
   import ContainerChat from "./ContainerChat.svelte";
-  import { getJson, postJson, requestPerfil } from "../utils/requests";
+  import {
+    adquirirProtocoloWS,
+    getJson,
+    postJson,
+    requestPerfil,
+  } from "../utils/requests";
   import { onMount } from "svelte";
   import { PUBLIC_URL_BACKEND } from "$env/static/public";
   import ContainerChatSelector, {
+    removerChat,
     type Chat,
+    adicionarChat,
   } from "./ContainerChatSelector.svelte";
   import { writable, type Writable } from "svelte/store";
 
   let usuario: Usuario | undefined = undefined;
+  let wsInfo: WebSocket | undefined = undefined;
+  type MessageSocketInfo = {
+    date: string;
+    id: number;
+    message: string;
+    message_type: string;
+  };
+
   function redirecionarLogin() {
     window.location.replace("/login");
   }
@@ -94,8 +109,31 @@
     }
     redirecionarLogin();
   }
+
+  async function setupWS() {
+    wsInfo = new WebSocket(
+      adquirirProtocoloWS() + "//" + PUBLIC_URL_BACKEND + "/info"
+    );
+    wsInfo.addEventListener("open", () => {
+      console.log("Conectado WS info");
+    });
+    wsInfo.addEventListener("message", (rawMsg) => {
+      const msg = JSON.parse(rawMsg.data) as MessageSocketInfo;
+      console.log(msg);
+      switch (msg.message_type) {
+        case "ChatCreated":
+          adicionarChat(msg.message);
+
+          break;
+        case "ChatRemoved":
+          removerChat(msg.message);
+          break;
+      }
+    });
+  }
   onMount(async () => {
     await getUsuario();
+    setupWS();
   });
 </script>
 

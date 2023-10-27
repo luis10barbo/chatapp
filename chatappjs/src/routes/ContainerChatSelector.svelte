@@ -25,11 +25,32 @@
     });
   }
 
-  export function removerChat(chat: Chat) {
+  export async function adicionarChat(idChat: string) {
+    const res = await getJson(
+      window.location.protocol +
+        "//" +
+        PUBLIC_URL_BACKEND +
+        `/chat/get?id=${idChat}`
+    );
+    if (res.status !== 200) return;
+
+    const chat = JSON.parse(await res.text()) as Chat;
+    console.log(chat);
+    chats.update((chats) => {
+      if (!chats) return [chat];
+
+      return [...chats, chat];
+    });
+  }
+
+  export function removerChat(chat: Chat | string) {
     chats.update((chats) => {
       if (!chats) return chats;
       return chats.flatMap((chatTemp) => {
-        if (chatTemp.chat_id === chat.chat_id) return [];
+        if (typeof chat === "string") {
+          if (chatTemp.chat_id === chat) return [];
+        } else if (chatTemp.chat_id === chat.chat_id) return [];
+
         return chatTemp;
       });
     });

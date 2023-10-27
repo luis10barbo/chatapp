@@ -14,7 +14,10 @@ use crate::{
         chat_message_db::ChatMessagesTable,
     },
     routes::user_route::RespostaAdquirirIdSessao,
-    sockets::chat::{lobby::ChatDeleted, socket::ChatWs},
+    sockets::{
+        chat::{lobby_actor::ChatDeleted, lobby_socket::ChatWs},
+        info::info_actor,
+    },
     AppContext,
 };
 
@@ -28,6 +31,7 @@ pub fn chat_scope() -> Scope {
         .service(get_chats_router)
         .service(get_messages)
         .service(remove_chat)
+        .service(get_chat_router)
 }
 
 #[get("/auth")]
@@ -103,6 +107,28 @@ pub async fn get_chats_router(app_ctx: Data<AppContext>) -> impl Responder {
     HttpResponse::Ok().json(chats)
 }
 
+#[derive(Debug, Deserialize)]
+pub struct GetChatQuery {
+    pub id: String,
+}
+#[get("/get")]
+pub async fn get_chat_router(
+    app_ctx: Data<AppContext>,
+    query: Query<GetChatQuery>,
+) -> impl Responder {
+    let Ok(db) = app_ctx.db.lock() else {
+        return HttpResponse::InternalServerError().body("Erro adquirindo db");
+    };
+
+    let chat = db.get_chat(&query.id, ChatTypes::GROUP);
+    let Ok(chat) = chat else {
+        log::error!("{:?}", chat.unwrap_err());
+        return HttpResponse::InternalServerError().body("Erro adquirindo chat");
+    };
+
+    HttpResponse::Ok().json(chat)
+}
+
 #[post("/create")]
 pub async fn create_chat_route(
     session: Session,
@@ -128,6 +154,18 @@ pub async fn create_chat_route(
         let err = chat.unwrap_err();
         return HttpResponse::InternalServerError().body(err.to_string())
     };
+
+    if let Err(err) = app_ctx
+        .info_server
+        .send(info_actor::ChatCreated {
+            room_id: chat_id.clone(),
+            user_id: user_id,
+        })
+        .await
+    {
+        log::error!("Error sending message to user {:?}", err)
+    };
+
     HttpResponse::Ok().json(chat)
 }
 
@@ -166,12 +204,7 @@ pub async fn connect_to_chat(
         };
     }
 
-    let ws = ChatWs::new(
-        info.uuid.clone(),
-        app_ctx.chat_server.clone(),
-        user_id,
-        app_ctx.db.clone(),
-    );
+    let ws = ChatWs::new(info.uuid.clone(), app_ctx.chat_server.clone(), user_id);
     ws::start(ws, &req, stream)
 }
 
@@ -236,6 +269,17 @@ pub async fn remove_chat(
     {
         log::error!("Error sending message to user: {:?}", err)
     }
+
+    if let Err(err) = app_ctx
+        .info_server
+        .send(info_actor::ChatDeleted {
+            room_id: body.chat_id.clone(),
+            user_id: user_id,
+        })
+        .await
+    {
+        log::error!("Error sending message to user {:?}", err)
+    };
 
     HttpResponse::Ok().body(format!("Chat {} deletado", body.chat_id))
 }

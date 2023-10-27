@@ -1,41 +1,30 @@
-use std::{
-    sync::{Arc, Mutex},
-    time::{Duration, Instant},
-};
-
 use actix::{
     fut, prelude::ContextFutureSpawner, Actor, ActorContext, ActorFutureExt, Addr, AsyncContext,
     Handler, Running, StreamHandler, WrapFuture,
 };
 use actix_web_actors::ws;
-use uuid::Uuid;
+use std::time::Instant;
 
-use crate::db::Database;
+use crate::sockets::{WsMessage, CLIENT_TIMEOUT, HEARTBEAT_INTERVAL};
 
-use super::lobby::{ClientActorMessage, Connect, Disconnect, Lobby, WsMessage};
-
-const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
-const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
+use super::info_actor::{Connect, Disconnect, Info};
 
 #[derive(Debug)]
-pub struct ChatWs {
+pub struct InfoWS {
     id: i64,
-    lobby_addr: Addr<Lobby>,
+    info_addr: Addr<Info>,
     hb: Instant,
-    room: String,
-    db: Arc<Mutex<Database>>,
 }
 
-impl ChatWs {
-    pub fn new(room: String, lobby_addr: Addr<Lobby>, id: i64, db: Arc<Mutex<Database>>) -> ChatWs {
-        ChatWs {
+impl InfoWS {
+    pub fn new(id: i64, info_addr: Addr<Info>) -> Self {
+        Self {
             id,
-            lobby_addr,
+            info_addr,
             hb: Instant::now(),
-            room,
-            db,
         }
     }
+
     fn hb(&self, ctx: &mut ws::WebsocketContext<Self>) {
         ctx.run_interval(HEARTBEAT_INTERVAL, |act, ctx| {
             if Instant::now().duration_since(act.hb) > CLIENT_TIMEOUT {
@@ -49,25 +38,15 @@ impl ChatWs {
     }
 }
 
-impl Handler<WsMessage> for ChatWs {
-    type Result = ();
-
-    fn handle(&mut self, msg: WsMessage, ctx: &mut Self::Context) -> Self::Result {
-        ctx.text(msg.0)
-    }
-}
-
-impl Actor for ChatWs {
+impl Actor for InfoWS {
     type Context = ws::WebsocketContext<Self>;
     fn started(&mut self, ctx: &mut Self::Context) {
         self.hb(ctx);
-
         let addr = ctx.address();
-        self.lobby_addr
+        self.info_addr
             .send(Connect {
                 addr: addr.recipient(),
-                room_id: self.room.clone(),
-                id: self.id,
+                user_id: self.id,
             })
             .into_actor(self)
             .then(|res, _, ctx| {
@@ -79,16 +58,21 @@ impl Actor for ChatWs {
             })
             .wait(ctx);
     }
-    fn stopping(&mut self, _: &mut Self::Context) -> Running {
-        self.lobby_addr.do_send(Disconnect {
-            id: self.id,
-            room_id: self.room.clone(),
-        });
+    fn stopping(&mut self, _: &mut Self::Context) -> actix::Running {
+        self.info_addr.do_send(Disconnect { user_id: self.id });
         Running::Stop
     }
 }
 
-impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for ChatWs {
+impl Handler<WsMessage> for InfoWS {
+    type Result = ();
+
+    fn handle(&mut self, msg: WsMessage, ctx: &mut Self::Context) -> Self::Result {
+        ctx.text(msg.0);
+    }
+}
+
+impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for InfoWS {
     fn handle(&mut self, item: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
         match item {
             Ok(ws::Message::Ping(msg)) => {
@@ -107,11 +91,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for ChatWs {
                 ctx.stop();
             }
             Ok(ws::Message::Nop) => (),
-            Ok(ws::Message::Text(s)) => self.lobby_addr.do_send(ClientActorMessage {
-                id: self.id,
-                msg: s.to_string(),
-                room_id: self.room.clone(),
-            }),
+            Ok(ws::Message::Text(_)) => (),
             Err(e) => panic!("{}", e),
         }
     }

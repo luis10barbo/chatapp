@@ -21,14 +21,19 @@ use actix_web::{
 };
 use db::Database;
 use logger::setup_logger;
-use routes::{chat_route::chat_scope, user_route::user_scope};
-use sockets::chat::lobby::Lobby;
+use routes::{
+    base_route::{base_scope, index_route, info_route},
+    chat_route::chat_scope,
+    user_route::user_scope,
+};
+use sockets::{chat::lobby_actor::Lobby, info::info_actor::Info};
 use uuid::Uuid;
 
 pub struct AppContext {
     db: Arc<Mutex<Database>>,
     auth_tokens: Arc<Mutex<HashMap<Uuid, i64>>>,
     chat_server: Addr<Lobby>,
+    info_server: Addr<Info>,
 }
 
 #[actix_web::main]
@@ -47,6 +52,7 @@ async fn main() -> std::io::Result<()> {
     };
     let db = Arc::new(Mutex::new(db::get().unwrap()));
     let chat_server = Lobby::new(db.clone()).start();
+    let info_server = Info::new().start();
     let auth_tokens = Arc::new(Mutex::new(HashMap::new()));
     HttpServer::new(move || {
         App::new()
@@ -73,24 +79,16 @@ async fn main() -> std::io::Result<()> {
                 db: db.clone(),
                 auth_tokens: auth_tokens.clone(),
                 chat_server: chat_server.clone(),
+                info_server: info_server.clone(),
             }))
             // .app_data(Data::new(chat_server.clone()))
-            .service(index)
-            .service(get_uuid)
+            .service(info_route)
+            .service(index_route)
+            // .service(base_scope())
             .service(user_scope())
             .service(chat_scope())
     })
     .bind((url_env, 8080))?
     .run()
     .await
-}
-
-#[get("/")]
-async fn index() -> impl Responder {
-    HttpResponse::Ok().body("Hello World")
-}
-
-#[get("/uuid")]
-pub async fn get_uuid() -> impl Responder {
-    HttpResponse::Ok().body(Uuid::new_v4().to_string())
 }

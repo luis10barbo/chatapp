@@ -1,9 +1,10 @@
 use crate::{
     db::{
-        chat_message_db::{ChatMessage, ChatMessagesTable, InsertChatMessage},
+        chat_message_db::{ChatMessagesTable, InsertChatMessage},
         Database,
     },
     message::{format_date, SocketMessage},
+    sockets::WsMessage,
 };
 use std::{
     collections::{HashMap, HashSet},
@@ -12,10 +13,9 @@ use std::{
 
 use actix::{
     prelude::{Message, Recipient},
-    Actor, ActorContext, AsyncContext, Handler,
+    Actor, Handler,
 };
 use chrono::Utc;
-use uuid::Uuid;
 
 type Socket = Recipient<WsMessage>;
 
@@ -28,11 +28,6 @@ pub struct Lobby {
 impl Actor for Lobby {
     type Context = actix::Context<Lobby>;
 }
-
-//WsConn responds to this to pipe it through to the actual client
-#[derive(Message)]
-#[rtype(result = "()")]
-pub struct WsMessage(pub String);
 
 //WsConn sends this to the lobby to say "put me in please"
 #[derive(Message)]
@@ -91,33 +86,16 @@ impl Lobby {
     }
 }
 
-// impl Default for Lobby {
-//     fn default() -> Self {
-//         Self {
-//             rooms: HashMap::new(),
-//             sessions: HashMap::new(),
-
-//         }
-//     }
-// }
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct ChatDeleted {
     pub chat_id: String,
 }
 
-// impl Handler<ChannelDeleted> for Lobby {
-//     type Result;
-
-//     fn handle(&mut self, msg: ChannelDeleted, ctx: &mut Self::Context) -> Self::Result {
-
-//     }
-// }
-
 impl Handler<ChatDeleted> for Lobby {
     type Result = ();
 
-    fn handle(&mut self, msg: ChatDeleted, ctx: &mut Self::Context) -> Self::Result {
+    fn handle(&mut self, msg: ChatDeleted, _: &mut Self::Context) -> Self::Result {
         let Some(room) = self.rooms.get(&msg.chat_id) else {
             log::error!("Chat não encontrado.");
             return ();
@@ -150,7 +128,7 @@ impl Handler<ClientActorMessage> for Lobby {
             user_id: msg.id,
         }) {
             log::error!("Error sending message to db {:?}", err);
-            if let Some(code) = err.sqlite_error_code() {
+            if let Some(_) = err.sqlite_error_code() {
                 self.send_message(
                     SocketMessage {
                         message_type: crate::message::MessageType::CHAT_DELETED,
@@ -222,7 +200,7 @@ impl Handler<Disconnect> for Lobby {
 impl Handler<Connect> for Lobby {
     type Result = ();
 
-    fn handle(&mut self, msg: Connect, ctx: &mut Self::Context) -> Self::Result {
+    fn handle(&mut self, msg: Connect, _: &mut Self::Context) -> Self::Result {
         println!("conectando {} ao lobby {}", msg.id, msg.room_id);
         self.rooms
             .entry(msg.room_id.clone())
@@ -233,24 +211,9 @@ impl Handler<Connect> for Lobby {
             .get(&msg.room_id)
             .unwrap()
             .iter()
-            // .filter(|conn_id| *conn_id.to_owned() != msg.id)
+            .filter(|conn_id| *conn_id.to_owned() != msg.id)
             .for_each(|conn_id| {
                 println!("curr conn: {}, msgid: {}", conn_id, &msg.id);
-                if conn_id.to_owned() == msg.id {
-                    self.sessions.keys();
-                    // self.send_message(
-                    //     SocketMessage {
-                    //         message_type: crate::message::MessageType::DISCONNECTED,
-                    //         message: "Logado de outra localizacao".into(),
-                    //         id: Some(msg.id),
-                    //         ..Default::default()
-                    //     },
-                    //     &msg.id,
-                    // );
-                    // ctx.cancel_future(ctx.handle());
-                    return;
-                }
-
                 self.send_message(
                     SocketMessage {
                         message_type: crate::message::MessageType::JOIN,
