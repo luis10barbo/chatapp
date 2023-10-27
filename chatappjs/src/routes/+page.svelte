@@ -75,6 +75,7 @@
     removerChat,
     type Chat,
     adicionarChat,
+    modificarChat,
   } from "./ContainerChatSelector.svelte";
   import { writable, type Writable } from "svelte/store";
 
@@ -127,6 +128,9 @@
           break;
         case "ChatRemoved":
           removerChat(msg.message);
+          break;
+        case "ChatUpdated":
+          modificarChat(JSON.parse(msg.message).chat);
           break;
       }
     });

@@ -4,7 +4,7 @@ use actix::{Actor, Handler, Message, Recipient};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 
-use crate::{message::format_date, sockets::WsMessage};
+use crate::{db::chat_db::Chat, message::format_date, sockets::WsMessage};
 
 type Socket = Recipient<WsMessage>;
 
@@ -28,6 +28,7 @@ impl Actor for Info {
 pub enum MessageType {
     ChatCreated,
     ChatRemoved,
+    ChatUpdated,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -131,5 +132,29 @@ impl Handler<Disconnect> for Info {
     type Result = ();
     fn handle(&mut self, msg: Disconnect, _: &mut Self::Context) -> Self::Result {
         self.sessions.remove(&msg.user_id);
+    }
+}
+
+#[derive(Message, Debug, Serialize, Clone)]
+#[rtype(result = "()")]
+pub struct ChatUpdate {
+    pub chat: Chat,
+}
+
+impl Handler<ChatUpdate> for Info {
+    type Result = ();
+
+    fn handle(&mut self, msg: ChatUpdate, ctx: &mut Self::Context) -> Self::Result {
+        self.sessions.iter().for_each(|(conn_id, recipient)| {
+            self.send_message(
+                InfoMessage {
+                    message_type: MessageType::ChatUpdated,
+                    message: serde_json::to_string(&msg).unwrap(),
+                    id: None,
+                    date: format_date(Utc::now()),
+                },
+                conn_id,
+            )
+        })
     }
 }

@@ -15,7 +15,7 @@ pub const CHAT_MESSAGES_TABLE_SQL: &str = "CREATE TABLE IF NOT EXISTS chat_messa
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );";
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ChatMessage {
     pub id: String,
     pub message: String,

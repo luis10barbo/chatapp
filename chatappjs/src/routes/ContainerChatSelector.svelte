@@ -19,6 +19,7 @@
       );
     chats.update((chats) => {
       return chats?.map((chat) => {
+        console.log("WAGA -> ", chat.chat_id, novoChat);
         if (chat.chat_id !== novoChat.chat_id) return chat;
         return novoChat;
       });

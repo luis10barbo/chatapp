@@ -34,7 +34,7 @@ pub enum ChatTypes {
     GROUP,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Chat {
     pub chat_id: String,
     pub creator_id: i64,

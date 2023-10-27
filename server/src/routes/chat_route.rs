@@ -16,7 +16,7 @@ use crate::{
     routes::user_route::RespostaAdquirirIdSessao,
     sockets::{
         chat::{lobby_actor::ChatDeleted, lobby_socket::ChatWs},
-        info::info_actor,
+        info::info_actor::{self, ChatUpdate},
     },
     AppContext,
 };
@@ -308,8 +308,7 @@ async fn rota_update(
     if chat.creator_id != user_id {
         return HttpResponse::Unauthorized().body("Você só pode modificar suas informações.");
     }
-
-    let res = db.update_chat(Chat {
+    let new_chat = Chat {
         chat_desc: chat.chat_desc.clone(),
         chat_id: chat.chat_id.clone(),
         chat_image: chat.chat_image.clone(),
@@ -318,7 +317,17 @@ async fn rota_update(
         chat_type: chat.chat_type,
         creator_id: chat.creator_id,
         last_message: None,
-    });
+    };
+
+    let res = db.update_chat(new_chat.clone());
+    if let Err(err) = app_ctx
+        .info_server
+        .send(ChatUpdate { chat: new_chat })
+        .await
+    {
+        log::error!("{:?}", err);
+    }
+
     let Ok(modified) = res else {
         let err = res.unwrap_err();
         log::error!("{:?}", err);
