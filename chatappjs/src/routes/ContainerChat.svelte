@@ -373,7 +373,7 @@
     >
       <img id="img-curr-chat" />
       <div id="curr-chat-info">
-        <p>{$chatCtx ? $chatCtx.chat_name : "Nenhum $chatCtx selecionado"}</p>
+        <p>{$chatCtx ? $chatCtx.chat_name : "Nenhum chat selecionado"}</p>
         <p class="chat-status" />
       </div>
     </button>
