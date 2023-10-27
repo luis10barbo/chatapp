@@ -348,7 +348,22 @@
           {/if}
           <section id="perfil-aba-participantes">
             <p>Participantes</p>
-            <p>(ainda nao implementado)</p>
+            {#if $onlineUsers}
+              {#each $onlineUsers as onlineUser}
+                <button id="curr-chat-desc">
+                  <img id="img-curr-chat" />
+                  <div id="curr-chat-info">
+                    {JSON.stringify(onlineUser[1])}
+                    <p>
+                      {onlineUser[1].user_nick
+                        ? onlineUser[1].user_nick
+                        : "Participante sem nome"}
+                    </p>
+                    <p class="chat-status" />
+                  </div>
+                </button>
+              {/each}
+            {/if}
           </section>
         </div>
       </HeightTransition>

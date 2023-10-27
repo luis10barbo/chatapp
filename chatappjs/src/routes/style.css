@@ -455,7 +455,10 @@ button:hover {
 }
 
 #perfil-aba-participantes {
-  margin-top: var(--small-padding);
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--smaller-padding);
+  gap: var(--small-padding);
 }
 
 @media (max-width: 700px) {
